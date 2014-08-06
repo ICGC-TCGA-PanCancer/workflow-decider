@@ -3,15 +3,15 @@ package com.github.seqware;
 /**
  * Mine
  */
-import ca.on.oicr.pde.utilities.workflows.OicrWorkflow;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import net.sourceforge.seqware.pipeline.workflowV2.AbstractWorkflowDataModel;
 import net.sourceforge.seqware.pipeline.workflowV2.model.Job;
 import net.sourceforge.seqware.pipeline.workflowV2.model.SqwFile;
 
-public class WorkflowClient extends OicrWorkflow {
+public class WorkflowClient extends AbstractWorkflowDataModel {
 
   // GENERAL
   // comma-seperated for multiple bam inputs
