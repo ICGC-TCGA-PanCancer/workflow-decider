@@ -8,6 +8,9 @@ print "Start\tStop\tDuration (days)\n";
 
 my $d = {};
 
+my $i = 0;
+my $t = 0;
+
 foreach my $summary (glob("reports/completed/*/summary.tsv")) {
   #print "$summary\n";
   my $txt = `cat $summary`;
@@ -28,6 +31,8 @@ foreach my $summary (glob("reports/completed/*/summary.tsv")) {
   #print "DIFF HOURS: $hours\n";
   my $days = $hours / 24;
   $d->{$start}{$stop} = $days;
+  $i++;
+  $t += $days;
 }
 
 foreach my $start (sort keys %{$d}) {
@@ -37,3 +42,5 @@ foreach my $start (sort keys %{$d}) {
     print "\n";
   }
 }
+my $avg = $t / $i;
+print "AVG: $avg\n";
