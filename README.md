@@ -114,11 +114,6 @@ Options:
         analyzed. This file should be placed in the whitelist folder and
         should have one donor id per line.
 
-    --filter-downloads-by-whitelist
-        This flag applies when a sample or donor whitelist is selected. If
-        selected this option will block download of analysis results for
-        non-whitelised donors or samples.
-
     --schedule-blacklist-sample[=][ ]<filename>
         This flag indicates samples that should not be run. The file should be
         placed in the blacklist folder and should have on sample id per line.
@@ -126,11 +121,6 @@ Options:
     --schedule-blacklist-donor[=][ ]<filename>
         This flag indicates donors that should not be run. The file should be
         placed in the blacklist folder and should have on donor id per line.
-
-    --filter-downloads-by-blacklist
-        This flag applies when a sample or donor blacklist is selected. If
-        selected this option will block download of analysis results for
-        blacklised donors or samples.
 
     --schedule-sample[=][ ]<aliquot_id>
         For only running one particular sample based on its uuid
