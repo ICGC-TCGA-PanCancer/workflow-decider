@@ -24,11 +24,11 @@ sudo gdebi --n /tmp/genetorrent-common_3.8.5-ubuntu2.91-12.04_amd64.deb /tmp/gen
 
 # install Oracle Java which is needed for SeqWare
 wget http://archive.cloudera.com/cm5/ubuntu/lucid/amd64/cm/pool/contrib/o/oracle-j2sdk1.7/oracle-j2sdk1.7_1.7.0+update25-1_amd64.deb
-dpkg -i oracle-j2sdk1.7_1.7.0+update25-1_amd64.deb
+sudo dpkg -i oracle-j2sdk1.7_1.7.0+update25-1_amd64.deb
 
 # cloudera 1.7 java package doesn't set up alternatives for some reason
-update-alternatives --install /usr/bin/java java /usr/lib/jvm/java-7-oracle-cloudera/jre/bin/java 2000
-update-alternatives --set java /usr/lib/jvm/java-7-oracle-cloudera/jre/bin/java
+sudo update-alternatives --install /usr/bin/java java /usr/lib/jvm/java-7-oracle-cloudera/jre/bin/java 2000
+sudo update-alternatives --set java /usr/lib/jvm/java-7-oracle-cloudera/jre/bin/java
 echo 'JAVA_HOME=/usr/lib/jvm/java-7-oracle-cloudera' | sudo tee -a /etc/environment
 
 # Install Seqware
