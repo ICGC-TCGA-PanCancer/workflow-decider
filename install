@@ -35,3 +35,6 @@ echo 'JAVA_HOME=/usr/lib/jvm/java-7-oracle-cloudera' | sudo tee -a /etc/environm
 wget https://github.com/SeqWare/seqware/releases/download/1.1.0-alpha.5/seqware -P /tmp
 sudo cp /tmp/seqware /usr/local/bin/
 sudo chmod a+x /usr/local/bin/seqware
+
+# add finished file for ansible integration
+touch ~/workflow-decider-installed
