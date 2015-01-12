@@ -1,12 +1,13 @@
 {
     "target-vcloud-2": {
-    "workflow_accession": "3",
+    "workflow_accession": "CHANGEME",
+    "workflow_name": "SangerPancancerCgpCnIndelSnvStr",
     "username": "admin@admin.com",
     "password": "admin",
-    "workflow_version": "1.0.1",
-    "webservice": "http://localhost:8080/SeqWareWebService",
+    "workflow_version": "CHANGEME",
+    "webservice": "http://CHANGEME:8080/SeqWareWebService",
     "host": "master",
-    "max_workflows": "2",
+    "max_workflows": "1",
     "max_scheduled_workflows": "1"
     }
 }
