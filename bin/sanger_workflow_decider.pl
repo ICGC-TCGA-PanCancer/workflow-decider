@@ -55,6 +55,7 @@ print "FAILED SAMPLES:\n";
 print Dumper($failed_samples);
 print "COMPLETED SAMPLES:\n";
 print Dumper($completed_samples);
+die;
 
 if (defined($ARGV{'--local-status-cache'})) {
   say 'Combining Previous Results with Local Cache File';
