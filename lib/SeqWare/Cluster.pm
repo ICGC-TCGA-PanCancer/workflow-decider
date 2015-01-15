@@ -21,6 +21,9 @@ use Data::Dumper;
 
 sub combine_local_data {
   my ($self, $running_sample_ids, $failed_samples, $completed_samples, $local_cache_file, $sample_info) = @_;
+
+  my $analysis_id_to_donor = parse_donors($sample_info);
+
   #print Dumper $running_sample_ids;
   # $samples_status->{$run_status}{$mergedSortedIds}{$created_timestamp}{$sample_id} = $run_status;
   # read it if it exists and add to structure
@@ -47,9 +50,19 @@ sub combine_local_data {
   open OUT, ">$local_cache_file" or die "Can't open file $local_cache_file for output";
   foreach my $hash ($running_sample_ids, $failed_samples, $completed_samples) {
     foreach my $mergedSortedIds (keys %{$hash}) {
+
+      my $project_code = "";
+      my $project_donor_id = "";
+      foreach my $id (split /,/, $mergedSortedIds) {
+        if (defined($analysis_id_to_donor->{$id})) {
+          $project_code = $analysis_id_to_donor->{$id}{project_code};
+          $project_donor_id = $analysis_id_to_donor->{$id}{project_donor_id};
+        }
+      }
+
       foreach my $created_timestamp (keys %{$hash->{$mergedSortedIds}}) {
         foreach my $sample_id (keys %{$hash->{$mergedSortedIds}{$created_timestamp}}) {
-          print OUT "$mergedSortedIds\t$created_timestamp\t$sample_id\t".$hash->{$mergedSortedIds}{$created_timestamp}{$sample_id}."\n";
+          print OUT "$mergedSortedIds\t$created_timestamp\t$sample_id\t".$hash->{$mergedSortedIds}{$created_timestamp}{$sample_id}."$project_code\t$project_donor_id\n";
         }
       }
     }
@@ -57,6 +70,33 @@ sub combine_local_data {
   close OUT;
   # return the structures
   return($running_sample_ids, $failed_samples, $completed_samples);
+}
+
+sub parse_donors {
+  my ($sample_info) = @_;
+  my $d = {};
+  foreach my $center (keys %{$sample_info}) {
+    foreach my $donor_id (keys %{$sample_info->{$center}}) {
+      my $project_code = $sample_info->{$center}{$donor_id}{dcc_project_code};
+      my $project_donor_id = $donor_id;
+      $project_donor_id =~ /($project_code-)(\S+)/;
+      $project_donor_id = $2;
+      foreach my $specimen (keys %{$sample_info->{$center}{$donor_id}}) {
+        next if ($specimen =~ /variant_workflow/ || $specimen =~ /dcc_project_code/ || $specimen =~ /submitter_donor_id/);
+        foreach my $workflow_id (keys %{$sample_info->{$center}{$donor_id}{$specimen}}) {
+          foreach my $uuid (keys %{$sample_info->{$center}{$donor_id}{$specimen}{$workflow_id}}) {
+            foreach my $library (keys %{$sample_info->{$center}{$donor_id}{$specimen}{$workflow_id}{$uuid}}) {
+              foreach my $analysis_id (keys %{$sample_info->{$center}{$donor_id}{$specimen}{$workflow_id}{$uuid}{$library}{analysis_ids}}) {
+                $d->{$analysis_id}{project_donor_id} = $project_donor_id;
+                $d->{$analysis_id}{project_code} = $project_code;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return($d);
 }
 
 sub cluster_seqware_information {
