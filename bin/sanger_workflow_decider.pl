@@ -77,8 +77,6 @@ if (defined($ARGV{'--local-status-cache'})) {
   ($running_sample_ids, $failed_samples, $completed_samples) = SeqWare::Cluster->combine_local_data($running_sample_ids, $failed_samples, $completed_samples, $ARGV{'--local-status-cache'}, $sample_information);
 }
 
-die;
-
 say 'Scheduling Samples';
 my $scheduler = SeqWare::Schedule::Sanger->new();
 my %args = %ARGV;
