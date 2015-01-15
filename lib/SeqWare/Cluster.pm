@@ -62,7 +62,7 @@ sub combine_local_data {
 
       foreach my $created_timestamp (keys %{$hash->{$mergedSortedIds}}) {
         foreach my $sample_id (keys %{$hash->{$mergedSortedIds}{$created_timestamp}}) {
-          print OUT "$mergedSortedIds\t$created_timestamp\t$sample_id\t".$hash->{$mergedSortedIds}{$created_timestamp}{$sample_id}."$project_code\t$project_donor_id\n";
+          print OUT "$mergedSortedIds\t$created_timestamp\t$sample_id\t".$hash->{$mergedSortedIds}{$created_timestamp}{$sample_id}."\t$project_code\t$project_donor_id\n";
         }
       }
     }
