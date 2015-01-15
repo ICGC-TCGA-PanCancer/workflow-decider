@@ -65,25 +65,25 @@ sub schedule_samples {
 	#say STDERR "DEBUG: detected different upload URL";
 	$self->{gnos_upload_url} = $gnos_upload_url;
     }
-    
+
     say $report_file "SAMPLE SCHEDULING INFORMATION\n";
-    
+
     my $i = 0;
     foreach my $center_name (keys %{$sample_information}) {
         next if (defined $specific_center && $specific_center ne $center_name);
         say $report_file "SCHEDULING: $center_name";
-	
+
 	my @blacklist = grep {s/\s+/-/} @{$blacklist->{donor}} if $blacklist and $blacklist->{donor};
 	my @whitelist = grep {s/\s+/-/} @{$whitelist->{donor}} if $whitelist and $whitelist->{donor};
-	
+
       DONOR: foreach my $donor_id (keys %{$sample_information->{$center_name}}) {
-	  
+
 	  # Only do specified donor if applicable
 	  next if defined $specific_donor and $specific_donor ne $donor_id;
-	  
+
 	  # Skip any blacklisted donors
 	  next if @blacklist > 0 and grep {/^$donor_id$/} @blacklist;
-	  
+
 	  # Skip any donors who already have the applicable major version of a
 	  # variant-calling workflow run
 	  my $variant_workflow = $sample_information->{$center_name}->{$donor_id}->{variant_workflow};
@@ -100,7 +100,7 @@ sub schedule_samples {
 
 		}
 	    }
-	  
+
           # put in the running+failed+completed
 	  my $unavail_samples = {};
 	  foreach my $key (keys %{$running_samples}) {
@@ -112,15 +112,15 @@ sub schedule_samples {
 	  foreach my $key (keys %{$completed_samples}) {
 	      $unavail_samples->{$key} = 1;
 	  }
-	  
+
 	  # Skip non-whitelisted donors if applicable
 	  my $on_whitelist = grep {/^$donor_id/} @whitelist;
 
 	  if (scalar(@whitelist) == 0 or $on_whitelist) {
 	      say STDERR "Donor $donor_id is on the whitelist" if $on_whitelist;
-	      
+
 	      my $donor_information = $sample_information->{$center_name}{$donor_id};
-	      
+
 	      $self->schedule_donor($report_file,
 				    $donor_id,
 				    $donor_information,
@@ -207,7 +207,7 @@ sub schedule_workflow {
 	    $working_dir,
 	    $center_name
 	    );
-	
+
         $self->create_workflow_ini(
 	    $donor,
 	    $workflow_version,
@@ -371,16 +371,16 @@ sub schedule_donor {
 		my $aliquots = $alignments->{$alignment_id};
 		foreach my $aliquot_id (keys %{$aliquots}) {
 		    $donor->{aliquot_ids}->{$alignment_id} = $aliquot_id;
-		    
+
 		    my $libraries = $aliquots->{$aliquot_id};
 		    foreach my $library_id (keys %{$libraries}) {
 			my $library = $libraries->{$library_id};
 
-			
+
 			my $current_bwa_workflow_version = $library->{bwa_workflow_version};
 			my @current_bwa_workflow_version = keys %$current_bwa_workflow_version;
 			$current_bwa_workflow_version = $current_bwa_workflow_version[0];
-			
+
 			my @current_bwa_workflow_version = split /\./, $current_bwa_workflow_version;
 			my @run_bwa_workflow_versions = split /\./, $bwa_workflow_version;
 
@@ -420,7 +420,7 @@ sub schedule_donor {
 			else {
 			    say STDERR "This is an unknown sample type!";
 			}
-			
+
 			# We can't use this!
 			next unless keys %tumor or keys %normal;
 
@@ -587,7 +587,7 @@ sub schedule_donor {
 	    $report_file,
 	    $skip_scheduling,
             $running_samples,
-            $donor
+            $donor, $center_name
 	);
 }
 

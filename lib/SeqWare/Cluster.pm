@@ -20,7 +20,7 @@ use Config::Simple;
 use Data::Dumper;
 
 sub combine_local_data {
-  my ($self, $running_sample_ids, $failed_samples, $completed_samples, $local_cache_file) = @_;
+  my ($self, $running_sample_ids, $failed_samples, $completed_samples, $local_cache_file, $sample_info) = @_;
   #print Dumper $running_sample_ids;
   # $samples_status->{$run_status}{$mergedSortedIds}{$created_timestamp}{$sample_id} = $run_status;
   # read it if it exists and add to structure
