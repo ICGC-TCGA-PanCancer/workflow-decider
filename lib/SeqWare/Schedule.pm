@@ -539,12 +539,12 @@ sub schedule_donor {
     my $missing_sample = (keys %specimens) != (keys %aligned_specimens);
 
     if ($unpaired_specimens) {
-	say STDERR "This set is missing a tumor or control; skipping";
+	say $report_file "This set is missing a tumor or control; skipping";
 	return 1;
     }
 
     if ($missing_sample) {
-	say STDERR "Not all samples have been aligned for this donor; skipping...";
+	say $report_file "Not all samples have been aligned for this donor; skipping...";
 	return 1;
     }
 
