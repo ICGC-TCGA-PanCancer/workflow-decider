@@ -538,6 +538,10 @@ sub schedule_donor {
     # Make sure all samples for this donor are accounted for
     my $missing_sample = (keys %specimens) != (keys %aligned_specimens);
 
+    print Dumper (keys %specimens);
+    print Dumper (keys %aligned_specimens);
+    print Dumper $missing_sample;
+
     if ($unpaired_specimens) {
 	say $report_file "This set is missing a tumor or control; skipping";
 	return 1;
