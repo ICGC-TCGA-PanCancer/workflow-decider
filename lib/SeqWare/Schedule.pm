@@ -351,6 +351,11 @@ sub schedule_donor {
     my (%specimens,%aligned_specimens);
 
     foreach my $donor_id (@sample_ids) {
+
+      # this is an ugly hack since I had to use this structure to pass around some extra info
+      # need to skip any "donors" that are named below because they aren't really donors!
+      next if ($donor_id eq "submitter_donor_id" || $donor_id eq "dcc_project_code");
+
 	$specimens{$donor_id}++;
 
         next if defined $specific_sample and $specific_sample ne $donor_id;
