@@ -136,7 +136,7 @@ sub get {
            and ref($analysis_result{analysis_xml}{ANALYSIS_SET}{ANALYSIS}) eq 'HASH') {
             if (ref($analysis_result{analysis_xml}{ANALYSIS_SET}{ANALYSIS}{ANALYSIS_ATTRIBUTES}) eq 'HASH') {
                 $analysis_attributes = $analysis_result{analysis_xml}{ANALYSIS_SET}{ANALYSIS}{ANALYSIS_ATTRIBUTES}{ANALYSIS_ATTRIBUTE};
-            } 
+            }
 #	    else {
 #		die "No analysis attributes";
 #	    }
@@ -310,6 +310,10 @@ sub get {
 
 	# Save VC workflow data without mangling
 	$participants->{$center_name}->{$donor_id}->{variant_workflow} = $variant_workflow;
+
+  # save info on project and donor code
+  $participants->{$center_name}->{$donor_id}->{dcc_project_code} = $dcc_project_code;
+  $participants->{$center_name}->{$donor_id}->{submitter_donor_id} = $$submitter_donor_id;
 
 
     }

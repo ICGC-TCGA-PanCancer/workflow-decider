@@ -56,11 +56,6 @@ my ($cluster_information, $running_sample_ids, $failed_samples, $completed_sampl
 #print "COMPLETED SAMPLES:\n";
 #print Dumper($completed_samples);
 
-if (defined($ARGV{'--local-status-cache'})) {
-  say 'Combining Previous Results with Local Cache File';
-  ($running_sample_ids, $failed_samples, $completed_samples) = SeqWare::Cluster->combine_local_data($running_sample_ids, $failed_samples, $completed_samples, $ARGV{'--local-status-cache'});
-}
-
 say 'Reading in GNOS Sample Information';
 my $gnos_info = GNOS::SampleInformation->new();
 if ($ARGV{'--filter-downloads-by-whitelist'}) {
@@ -75,6 +70,12 @@ my $sample_information = $gnos_info->get( $ARGV{'--working-dir'},
 					  $whitelist,
 					  $blacklist);
 
+#print Dumper($sample_information);
+
+if (defined($ARGV{'--local-status-cache'})) {
+  say 'Combining Previous Results with Local Cache File';
+  ($running_sample_ids, $failed_samples, $completed_samples) = SeqWare::Cluster->combine_local_data($running_sample_ids, $failed_samples, $completed_samples, $ARGV{'--local-status-cache'}, $sample_information);
+}
 
 say 'Scheduling Samples';
 my $scheduler = SeqWare::Schedule::Sanger->new();
