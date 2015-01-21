@@ -1,0 +1,58 @@
+=head1 VERSION
+
+Version 0.0.1
+
+=head1 AUTHOR(S)
+
+Brian O'Connor, Adam Wright
+
+=over
+
+=item --usage
+
+=item --help
+
+=item --man
+
+Print the usual program information
+
+=back
+
+=head1 DESCRIPTION
+
+A tool for updating the whitelist form pcawg-operations whitelist. This is to be used by running this tool in a cron job to generate the latest whitelist and blacklist before the workflow_decider is run. 
+
+=head1 NAME
+
+Whitlist Updater
+
+=head1 REQUIRED
+
+=item --pawgc-repo-dir[=][ ]<repo_dir>
+
+Path to find and or create the pawgc-operations repo in. 
+
+=head1 REQUIRED
+
+=item --cloud-env[=][ ]<cloud_env>
+
+Cloud environment as listeed in the whitelist directory in pcawg-operations
+
+=head1 REQUIRED
+
+=item --gnos-repo[=][ ]<gnos_repo>
+
+This is the gnos repo using same naming convension as in the files in the whitelist folders in the pcawg-list
+
+=head1 REQUIRED
+
+=item --whitelist-target-path[=][ ]<whitelist_target_path>
+
+Full path to whitelist for decider. 
+
+=head1 REQUIRED
+
+=item --blacklist-target-path[=][ ]<blacklist_target_path>
+
+Full path to blacklist for decider. 
+

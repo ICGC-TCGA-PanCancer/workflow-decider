@@ -45,17 +45,17 @@ sub create_settings_file {
         $output_dir,
         $center_name) = @_;
 
-print "SETTINGS FILE TEMPLATE IS: $seqware_settings_file\n";
+    #print "SETTINGS FILE TEMPLATE IS: $seqware_settings_file\n";
 
     my $settings = new Config::Simple($seqware_settings_file);
 
-    print "TEMPLATE VALUES TO FILL IN: URL $url USERNAME $username PASS $password\n";
+    #print "TEMPLATE VALUES TO FILL IN: URL $url USERNAME $username PASS $password\n";
 
     $url //= '<SEQWARE URL>';
     $username //= '<SEQWARE USER NAME>';
     $password //= '<SEQWARE PASSWORD>';
 
-    print "TEMPLATE VALUES TO FILL IN: URL $url USERNAME $username PASS $password\n";
+    #print "TEMPLATE VALUES TO FILL IN: URL $url USERNAME $username PASS $password\n";
 
     $settings->param('SW_REST_URL', $url);
     $settings->param('SW_REST_USER', $username);
