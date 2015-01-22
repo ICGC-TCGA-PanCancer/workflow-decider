@@ -13,8 +13,7 @@ use Getopt::Euclid;
 use Capture::Tiny ':all';
 
 #Example Command
-## perl bin/update-whitelist.pl --pawgc-repo-dir /home/awright/gitroot/ --whitelist-target-path=/home/awright/mock/lib/whitelist.txt --cloud-env=ebi --gnos-repo=ebi --blacklist-target-path=/home/awright/mock/lib/blacklist.txt
-
+## perl bin/update-whitelist.pl --pawgc-repo-dir /home/ubuntu/architecture2/ --whitelist-target-path=/home/ubuntu/architecture2/workflow-decider/whitelist/ebi-whitelist.txt --cloud-env=ebi --gnos-repo=ebi --blacklist-target-path=/home/ubuntu/architecture2/workflow-decider/blacklist/blacklist.txt
 
 my $repo_dir  = $ARGV{'--pawgc-repo-dir'};
 my $whitelist_target_path = $ARGV{'--whitelist-target-path'};
