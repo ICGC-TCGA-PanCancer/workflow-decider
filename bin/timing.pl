@@ -68,6 +68,7 @@ foreach my $type ("completed", "failed") {
   }
   my $avg = $t / $i;
   my $average_cost = $avg * $day_cost;
+  print "TOTAL DONORS: ".scalar(@days)."\n";
   print "AVG DAYS PER DONOR: $avg\n";
   print "AVG COST PER DONOR: \$$average_cost\n";
 
