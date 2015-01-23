@@ -1,8 +1,15 @@
 use strict;
 use DateTime;
 use DateTime::Format::ISO8601;
+use Statistics::Basic qw(:all);
+use List::Util qw< min max >;
 
-# sudo apt-get install libdatetime-perl libdatetime-format-iso8601-perl
+# INSTALL:
+# sudo apt-get install libdatetime-perl libdatetime-format-iso8601-perl libstatistics-basic-perl
+
+die "USAGE $0 <report_dir>" if (scalar(@ARGV) != 1);
+
+my ($report_dir) = @ARGV;
 
 foreach my $type ("completed", "failed") {
 
@@ -24,7 +31,7 @@ foreach my $type ("completed", "failed") {
   my $rc_8xlarge_per_day = 10;
   my $day_cost = $ebs_per_day + $gb_out_20 + $rc_8xlarge_per_day;
 
-  foreach my $summary (glob("reports/$type/*/summary.tsv")) {
+  foreach my $summary (glob("$report_dir/$type/*/summary.tsv")) {
     #print "$summary\n";
     my $txt = `cat $summary`;
     #print "$txt\n";
@@ -49,17 +56,31 @@ foreach my $type ("completed", "failed") {
     $cost += ($days * $day_cost);
   }
 
+  my @days;
+
   foreach my $start (sort keys %{$d}) {
     foreach my $stop (sort keys %{$d->{$start}}) {
       print "$start\t$stop\t";
       print $d->{$start}{$stop};
       print "\n";
+      push @days, $d->{$start}{$stop};
     }
   }
   my $avg = $t / $i;
   my $average_cost = $avg * $day_cost;
-  print "AVG PER DONOR DAYS: $avg\n";
-  print "AVG PER DONOR COST: \$$average_cost\n";
-  print "TOTAL COST: \$$cost\n";
+  print "AVG DAYS PER DONOR: $avg\n";
+  print "AVG COST PER DONOR: \$$average_cost\n";
+
+  my $median = median(@days);
+  my $stddev = stddev(@days);
+  my $min = min @days;
+  my $max = max @days;
+
+  print "MEDIAN DAYS PER DONOR: $median\n";
+  print "STDDEV DAYS PER DONOR: $stddev\n";
+  print "MIN DAYS: $min\n";
+  print "MAX DAYS: $max\n";
+
+  print "TOTAL APPROX COST: \$$cost\n";
 
 }
