@@ -68,20 +68,29 @@ foreach my $type ("completed", "failed") {
   }
   my $avg = $t / $i;
   my $average_cost = $avg * $day_cost;
-  print "TOTAL DONORS: ".scalar(@days)."\n";
-  print "AVG DAYS PER DONOR: $avg\n";
-  print "AVG COST PER DONOR: \$$average_cost\n";
+  print "TOTAL DONORS:\t".scalar(@days)."\n";
+  print "AVG DAYS/DONOR:\t$avg\n";
+  my $hours = 24*$avg;
+  print "AVG HOURS/DONOR:\t$hours\n";
 
   my $median = median(@days);
   my $stddev = stddev(@days);
   my $min = min @days;
   my $max = max @days;
 
-  print "MEDIAN DAYS PER DONOR: $median\n";
-  print "STDDEV DAYS PER DONOR: $stddev\n";
-  print "MIN DAYS: $min\n";
-  print "MAX DAYS: $max\n";
-
-  print "TOTAL APPROX COST: \$$cost\n";
+  print "MEDIAN DAYS/DONOR:\t$median\n";
+  $hours = $median * 24;
+  print "MEDIAN HOURS/DONOR:\t$median\n";
+  print "STDDEV DAYS/DONOR:\t$stddev\n";
+  $hours = $stddev * 24;
+  print "STDDEV DAYS/DONOR:\t$hours\n";
+  print "MIN DAYS:\t$min\n";
+  $hours = $min * 24;
+  print "MIN HOURS:\t$min\n";
+  print "MAX DAYS:\t$max\n";
+  $hours = $max * 24;
+  print "MAX HOURS:\t$hours\n";
+  print "AVG COST/DONOR:\t\$$average_cost\n";
+  print "TOTAL APPROX COST:\t\$$cost\n";
 
 }
