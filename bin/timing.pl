@@ -80,13 +80,13 @@ foreach my $type ("completed", "failed") {
 
   print "MEDIAN DAYS/DONOR:\t$median\n";
   $hours = $median * 24;
-  print "MEDIAN HOURS/DONOR:\t$median\n";
+  print "MEDIAN HOURS/DONOR:\t$hours\n";
   print "STDDEV DAYS/DONOR:\t$stddev\n";
   $hours = $stddev * 24;
   print "STDDEV DAYS/DONOR:\t$hours\n";
   print "MIN DAYS:\t$min\n";
   $hours = $min * 24;
-  print "MIN HOURS:\t$min\n";
+  print "MIN HOURS:\t$hours\n";
   print "MAX DAYS:\t$max\n";
   $hours = $max * 24;
   print "MAX HOURS:\t$hours\n";
