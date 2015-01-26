@@ -116,9 +116,12 @@ sub cluster_seqware_information {
        %completed_samples,
        $cluster_info,
        $samples_status_ids);
+       my $cluster_num = 0;
     foreach my $cluster_name (keys %{$clusters}) {
         my $cluster_metadata = $clusters->{$cluster_name};
-        #print Dumper($cluster_metadata);
+        $cluster_num++;
+        print "CLUSTER METADATA: \n";
+        print Dumper($cluster_metadata);
         ($cluster_info, $samples_status_ids)
             = seqware_information( $report_file,
                                    $cluster_name,
