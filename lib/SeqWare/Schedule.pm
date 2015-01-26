@@ -647,8 +647,6 @@ sub previously_failed_running_or_completed {
     }
     print "PREVIOUSLY RUN:$previously_run\n";
 
-die;
-
     return($previously_run);
 }
 
