@@ -612,15 +612,15 @@ sub should_be_scheduled {
     my $prev_failed_running_complete = $self->previously_failed_running_or_completed($donor, $running_samples);
     if ($prev_failed_running_complete) {
       say $report_file "\t\t\tCONCLUSION: NOT SCHEDULING FOR VCF, PREVIOUSLY FAILED, RUNNING, OR COMPLETED";
-      print $report_file "\t\t\tCONCLUSION: NOT SCHEDULING FOR VCF, PREVIOUSLY FAILED, RUNNING, OR COMPLETED\n";
+      #print "\t\t\tCONCLUSION: NOT SCHEDULING FOR VCF, PREVIOUSLY FAILED, RUNNING, OR COMPLETED\n";
       return(0);
     } elsif ($skip_scheduling) {
       say $report_file "\t\tCONCLUSION: SKIPPING SCHEDULING SINCE SKIP-SCHEDULING SELECTED";
-      print $report_file "\t\tCONCLUSION: SKIPPING SCHEDULING SINCE SKIP-SCHEDULING SELECTED\n";
+      #print "\t\tCONCLUSION: SKIPPING SCHEDULING SINCE SKIP-SCHEDULING SELECTED\n";
       return(0);
     } else {
       say $report_file "\t\tCONCLUSION: SCHEDULING FOR VCF";
-      print $report_file "\t\tCONCLUSION: SCHEDULING FOR VCF\n";
+      #print "\t\tCONCLUSION: SCHEDULING FOR VCF\n";
       return(1);
     }
 }
