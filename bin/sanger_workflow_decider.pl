@@ -84,8 +84,6 @@ if (defined($ARGV{'--local-status-cache'})) {
   print Dumper($completed_samples);
 }
 
-die;
-
 say 'Scheduling Samples';
 my $scheduler = SeqWare::Schedule::Sanger->new();
 my %args = %ARGV;

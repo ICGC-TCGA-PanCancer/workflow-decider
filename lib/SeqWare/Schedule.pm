@@ -570,7 +570,8 @@ sub schedule_donor {
     $donor->{normal} = \%normal;
     $donor->{tumor}  = \%tumor;
 
-    say "\nABOUT TO SCHEDULE";
+    say "\nABOUT TO SCHEDULE $donor_id";
+    print "\nABOUT TO SCHEDULE $donor_id";
 
     $self->schedule_workflow( $donor,
 			      $seqware_settings_file,
@@ -638,6 +639,9 @@ sub previously_failed_running_or_completed {
      print "RUNNING: $key $want_to_run_str\n";
    }
    print "PREVIOUSLY RUN:$previously_run\n";
+
+   die;
+
    return($previously_run);
 }
 
