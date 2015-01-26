@@ -120,7 +120,7 @@ sub cluster_seqware_information {
     foreach my $cluster_name (keys %{$clusters}) {
         my $cluster_metadata = $clusters->{$cluster_name};
         $cluster_num++;
-        print "CLUSTER METADATA: \n";
+        print "CLUSTER METADATA: $cluster_num\n";
         print Dumper($cluster_metadata);
         ($cluster_info, $samples_status_ids)
             = seqware_information( $report_file,
