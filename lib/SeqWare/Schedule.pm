@@ -608,17 +608,17 @@ sub should_be_scheduled {
     my $running_samples = shift;
     my $donor = shift;
 
-    if ($skip_scheduling) {
-        say $report_file "\t\tCONCLUSION: SKIPPING SCHEDULING";
-        return 1;
-    }
-
-
     #return 1;
     # LEFT OFF WITH: need to combine the schedule function with previously_failed... Sheldon, is this what was intended?
     my $prev_failed_running_complete = $self->previously_failed_running_or_completed($donor, $running_samples);
     if ($prev_failed_running_complete) { say $report_file "\t\t\tCONCLUSION: NOT SCHEDULING FOR VCF, PREVIOUSLY FAILED, RUNNING, OR COMPLETED"; }
     else { say $report_file "\t\tCONCLUSION: SCHEDULING FOR VCF"; }
+
+    if ($skip_scheduling) {
+      say $report_file "\t\tCONCLUSION: SKIPPING SCHEDULING";
+      return 1;
+    }
+
     return (!$prev_failed_running_complete);
 }
 
