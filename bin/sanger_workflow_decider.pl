@@ -47,14 +47,15 @@ my ($cluster_information, $running_sample_ids, $failed_samples, $completed_sampl
 
 #my $failed_db = Decider::Database->failed_connect();
 
-#print "CLUSTER INFO:\n";
-#print Dumper($cluster_information);
-#print "RUNNING SAMPLES:\n";
-#print Dumper($running_sample_ids);
-#print "FAILED SAMPLES:\n";
-#print Dumper($failed_samples);
-#print "COMPLETED SAMPLES:\n";
-#print Dumper($completed_samples);
+print "CLUSTER INFO:\n";
+print Dumper($cluster_information);
+print "RUNNING SAMPLES:\n";
+print Dumper($running_sample_ids);
+print "FAILED SAMPLES:\n";
+print Dumper($failed_samples);
+print "COMPLETED SAMPLES:\n";
+print Dumper($completed_samples);
+die;
 
 say 'Reading in GNOS Sample Information';
 my $gnos_info = GNOS::SampleInformation->new();
