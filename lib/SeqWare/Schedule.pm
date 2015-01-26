@@ -333,7 +333,7 @@ sub schedule_donor {
 	) = @_;
 
     say "GOING TO SCHEDULE";
-    say $report_file "DONOR/PARTICIPANT: $donor_id\n";
+    say $report_file "\nDONOR/PARTICIPANT: $donor_id\n";
 
     my @sample_ids = keys %{$donor_information};
     my @samples;
