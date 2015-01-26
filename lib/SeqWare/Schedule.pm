@@ -628,7 +628,7 @@ sub should_be_scheduled {
 sub previously_failed_running_or_completed {
     my $self = shift;
     my ($donor, $running_samples) = @_;
-    print Dumper($donor);
+    #print Dumper($donor);
     my @want_to_run;
 
     foreach my $key (keys %{$donor->{normal}}) {
@@ -643,7 +643,7 @@ sub previously_failed_running_or_completed {
     # now check
     foreach my $key (keys %{$running_samples}) {
       if ($key eq $want_to_run_str) { $previously_run = 1; }
-      print "RUNNING SAMPLE: $key WANT TO RUN: $want_to_run_str PREVIOUSLY RUN BOOL: $previously_run\n";
+      #print "RUNNING SAMPLE: $key WANT TO RUN: $want_to_run_str PREVIOUSLY RUN BOOL: $previously_run\n";
     }
     print "PREVIOUSLY RUN:$previously_run\n";
 
