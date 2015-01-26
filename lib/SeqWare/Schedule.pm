@@ -630,9 +630,14 @@ sub previously_failed_running_or_completed {
     my ($donor, $running_samples) = @_;
     print Dumper($donor);
     my @want_to_run;
-    foreach my $key (keys %{$donor->{analysis_ids}}) {
+
+    foreach my $key (keys %{$donor->{normal}}) {
       push @want_to_run, $donor->{analysis_ids}{$key};
     }
+    foreach my $key (keys %{$donor->{tumor}}) {
+      push @want_to_run, $donor->{analysis_ids}{$key};
+    }
+
     my $want_to_run_str = join (",", sort(@want_to_run));
     my $previously_run = 0;
     # now check
