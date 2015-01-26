@@ -333,7 +333,7 @@ sub schedule_donor {
 	) = @_;
 
     say "GOING TO SCHEDULE";
-    say $report_file "DONOR/PARTICIPANT: $donor_id\n";
+    say $report_file "\nDONOR/PARTICIPANT: $donor_id\n";
 
     my @sample_ids = keys %{$donor_information};
     my @samples;
@@ -570,7 +570,8 @@ sub schedule_donor {
     $donor->{normal} = \%normal;
     $donor->{tumor}  = \%tumor;
 
-    say "\nABOUT TO SCHEDULE";
+    say "\nABOUT TO SCHEDULE $donor_id";
+    print "\nABOUT TO SCHEDULE $donor_id";
 
     $self->schedule_workflow( $donor,
 			      $seqware_settings_file,
@@ -607,38 +608,46 @@ sub should_be_scheduled {
     my $running_samples = shift;
     my $donor = shift;
 
-    if ($skip_scheduling) {
-        say $report_file "\t\tCONCLUSION: SKIPPING SCHEDULING";
-        return 1;
-    }
-
-
-    #return 1;
-    # LEFT OFF WITH: need to combine the schedule function with previously_failed... Sheldon, is this what was intended?
+    # running_samples here actually contains running, failed, and completed
     my $prev_failed_running_complete = $self->previously_failed_running_or_completed($donor, $running_samples);
-    if ($prev_failed_running_complete) { say $report_file "\t\t\tCONCLUSION: NOT SCHEDULING FOR VCF, PREVIOUSLY FAILED, RUNNING, OR COMPLETED"; }
-    else { say $report_file "\t\tCONCLUSION: SCHEDULING FOR VCF"; }
-    return (!$prev_failed_running_complete);
+    if ($prev_failed_running_complete) {
+      say $report_file "\t\t\tCONCLUSION: NOT SCHEDULING FOR VCF, PREVIOUSLY FAILED, RUNNING, OR COMPLETED";
+      #print "\t\t\tCONCLUSION: NOT SCHEDULING FOR VCF, PREVIOUSLY FAILED, RUNNING, OR COMPLETED\n";
+      return(0);
+    } elsif ($skip_scheduling) {
+      say $report_file "\t\tCONCLUSION: SKIPPING SCHEDULING SINCE SKIP-SCHEDULING SELECTED";
+      #print "\t\tCONCLUSION: SKIPPING SCHEDULING SINCE SKIP-SCHEDULING SELECTED\n";
+      return(0);
+    } else {
+      say $report_file "\t\tCONCLUSION: SCHEDULING FOR VCF";
+      #print "\t\tCONCLUSION: SCHEDULING FOR VCF\n";
+      return(1);
+    }
 }
 
-# TODO: combine with the schedule method below, is the scheduled method even being used currently?
 sub previously_failed_running_or_completed {
     my $self = shift;
-    my ($donor,
-	$running_samples) = @_;
-   my @want_to_run;
-   foreach my $key (keys %{$donor->{analysis_ids}}) {
-     push @want_to_run, $donor->{analysis_ids}{$key};
-   }
-   my $want_to_run_str = join (",", sort(@want_to_run));
-   my $previously_run = 0;
-   # now check
-   foreach my $key (keys %{$running_samples}) {
-     if ($key eq $want_to_run_str) { $previously_run = 1; }
-     print "RUNNING: $key $want_to_run_str\n";
-   }
-   print "PREVIOUSLY RUN:$previously_run\n";
-   return($previously_run);
+    my ($donor, $running_samples) = @_;
+    #print Dumper($donor);
+    my @want_to_run;
+
+    foreach my $key (keys %{$donor->{normal}}) {
+      push @want_to_run, $donor->{analysis_ids}{$key};
+    }
+    foreach my $key (keys %{$donor->{tumor}}) {
+      push @want_to_run, $donor->{analysis_ids}{$key};
+    }
+
+    my $want_to_run_str = join (",", sort(@want_to_run));
+    my $previously_run = 0;
+    # now check
+    foreach my $key (keys %{$running_samples}) {
+      if ($key eq $want_to_run_str) { $previously_run = 1; }
+      #print "RUNNING SAMPLE: $key WANT TO RUN: $want_to_run_str PREVIOUSLY RUN BOOL: $previously_run\n";
+    }
+    print "PREVIOUSLY RUN:$previously_run\n";
+
+    return($previously_run);
 }
 
 sub scheduled {
