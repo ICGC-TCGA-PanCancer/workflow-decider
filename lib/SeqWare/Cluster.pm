@@ -117,19 +117,19 @@ sub cluster_seqware_information {
        $cluster_info,
        $samples_status_ids);
        my $cluster_num = 0;
+
     foreach my $cluster_name (keys %{$clusters}) {
         my $cluster_metadata = $clusters->{$cluster_name};
         $cluster_num++;
-        print "CLUSTER METADATA: $cluster_num NAME: $cluster_name\n";
-        print Dumper($cluster_metadata);
+        #print "CLUSTER METADATA: $cluster_num NAME: $cluster_name\n";
+        #print Dumper($cluster_metadata);
+
         ($cluster_info, $samples_status_ids)
             = seqware_information( $report_file,
                                    $cluster_name,
                                    $cluster_metadata,
                                    $run_workflow_version,
                                    $failure_reports_dir);
-
-        # LEFT OFF HERE: need to pass back the structure for failed workflows, parse it, and write out a report for it
 
         foreach my $cluster (keys %{$cluster_info}) {
            $cluster_information{$cluster} = $cluster_info->{$cluster};
