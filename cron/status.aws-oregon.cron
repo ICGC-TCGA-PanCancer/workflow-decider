@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# use a lock file to ensure this doesn't run more than once at a time if deployer takes a long time
+cd
+(flock -x 3
+
+  echo
+  echo '==============================='
+  date 
+  echo '==============================='
+  echo
+
+  java -jar youxia-deployer/target/youxia-deployer-1.1.0-beta.2-jar-with-dependencies.jar --ansible-playbook /home/ubuntu/architecture2/monitoring-bag/site.yml --max-spot-price 3.1201 --batch-size 1 --total-nodes-num 20
+  java -jar youxia-generator/target/youxia-generator-1.1.0-beta.2-jar-with-dependencies.jar --aws --output /home/ubuntu/state/instances.json
+
+  # actual Perl decider
+  # see ~/gitroot/workflow-decider/sanger_workflow_test_ebi.sh
+  cp /home/ubuntu/state/instances.json ~/gitroot/workflow-decider/
+  cd ~/gitroot/workflow-decider
+  perl bin/sanger_workflow_decider.pl \
+    --seqware-clusters instances.json \
+    --workflow-version 1.0.4 \
+    --bwa-workflow-version 2.6.0 \
+    --working-dir osdc-icgc \
+    --gnos-url  https://gtrepo-osdc-icgc.annailabs.com \
+    --decider-config conf/decider.ini \
+    --use-cached-xml \
+    --local-status-cache local-status-cache.osdc-icgc.tsv \
+    --failure-reports-dir reports \
+    --schedule-whitelist-donor master_whitelist.txt \
+    --schedule-blacklist-donor _all_sites.150123-1706.merged_called-donors_aws-ireland_pilot63.txt
+
+  # not used: --schedule-force-run \
+  # not used: --workflow-skip-scheduling \
+
+  # run to eliminate any over the kill limit... don't want these to run for another hour for no good reason
+  cd -
+  java -jar youxia-reaper/target/youxia-reaper-1.1.0-beta.2-jar-with-dependencies.jar --kill-limit 1 --persist
+
+) 3>youxia_lockfile
