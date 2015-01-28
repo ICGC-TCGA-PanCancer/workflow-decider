@@ -5,7 +5,12 @@ my ($qjobs, $ojobs, $wjobs) = find_running();
 my $tries = 10;
 while ($qjobs == 0 && $ojobs > 0 && $wjobs > 0) {
   print "POTENTIAL PROBLEM\n";
-  if ($tries <= 0) { print "ERROR: Restart Oozie 'sudo /etc/init.d/oozie restart'\n"; last; }
+  if ($tries <= 0) {
+    print "ERROR: Restart Oozie 'sudo /etc/init.d/oozie restart'\n";
+    my $result = system("sudo /etc/init.d/oozie restart");
+    if ($result != 0) { print "Problems with the restart\n"; }
+    last;
+  }
   sleep 60;
   ($qjobs, $ojobs, $wjobs) = find_running();
   $tries--;
