@@ -1,7 +1,7 @@
 use strict;
 
 # run this in the root cron
-# */20 * * * * perl /root/test_oozie_sge.pl > /root/test.log
+# */20 * * * * perl /root/test.pl > /root/test.log
 
 my ($qjobs, $ojobs, $wjobs) = find_running();
 
@@ -30,7 +30,7 @@ sub find_running {
   print "There are $qjobs SGE jobs running\n";
   print "There are $ojobs Oozie jobs running\n";
 
-  my @accessions = split /\n/, `sudo su -c 'seqware workflow list | grep Accession | awk "{print \$4}"' - seqware`;
+  my @accessions = split /\n/, `sudo su -c 'seqware workflow list | grep Accession | awk "{print \\\$4}"' - seqware`;
 
   print "Checking SeqWare Workflows\n";
   my $running_count = 0;
