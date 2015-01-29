@@ -1,6 +1,7 @@
 use strict;
 
 # run this in the root cron
+# */20 * * * * perl /root/test_oozie_sge.pl > /root/test.log
 
 my ($qjobs, $ojobs, $wjobs) = find_running();
 
