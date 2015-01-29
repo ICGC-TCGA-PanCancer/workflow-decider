@@ -62,8 +62,8 @@ sub schedule_samples {
     # This is a special case: make a note of the GNOS upload URL is defined and
     # is not the same as the download URL
     if ($gnos_upload_url && $gnos_upload_url ne $gnos_url) {
-	#say STDERR "DEBUG: detected different upload URL";
-	$self->{gnos_upload_url} = $gnos_upload_url;
+        #say STDERR "DEBUG: detected different upload URL";
+        $self->{gnos_upload_url} = $gnos_upload_url;
     }
 
     say $report_file "SAMPLE SCHEDULING INFORMATION\n";
@@ -73,87 +73,84 @@ sub schedule_samples {
         next if (defined $specific_center && $specific_center ne $center_name);
         say $report_file "SCHEDULING: $center_name";
 
-	my @blacklist = grep {s/\s+/-/} @{$blacklist->{donor}} if $blacklist and $blacklist->{donor};
-	my @whitelist = grep {s/\s+/-/} @{$whitelist->{donor}} if $whitelist and $whitelist->{donor};
+        my @blacklist = grep {s/\s+/-/} @{$blacklist->{donor}} if $blacklist and $blacklist->{donor};
+        my @whitelist = grep {s/\s+/-/} @{$whitelist->{donor}} if $whitelist and $whitelist->{donor};
 
-      DONOR: foreach my $donor_id (keys %{$sample_information->{$center_name}}) {
+        DONOR: foreach my $donor_id (keys %{$sample_information->{$center_name}}) {
+            # Only do specified donor if applicable
+            next if defined $specific_donor and $specific_donor ne $donor_id;
 
-	  # Only do specified donor if applicable
-	  next if defined $specific_donor and $specific_donor ne $donor_id;
+            # Skip any blacklisted donors
+            next if @blacklist > 0 and grep {/^$donor_id$/} @blacklist;
 
-	  # Skip any blacklisted donors
-	  next if @blacklist > 0 and grep {/^$donor_id$/} @blacklist;
+            # Skip any donors who already have the applicable major version of a
+            # variant-calling workflow run
+            my $variant_workflow = $sample_information->{$center_name}->{$donor_id}->{variant_workflow};
+            delete $sample_information->{$center_name}->{$donor_id}->{variant_workflow}; # or else mess up specimen count
+            if ($variant_workflow && ref $variant_workflow eq 'HASH') {
+                if (my $variant_workflow_version = $variant_workflow->{$workflow_name} ) {
+                    my @have_version = split '.', $variant_workflow_version;
+                    my @need_version = split '.', $workflow_version;
+                    my $skip_donor = $have_version[0] == $need_version[0] && $have_version[1] == $need_version[1];
+                    if ($skip_donor) {
+                        say STDERR "Skipping donor $donor_id because $workflow_name has already been run";
+                        next DONOR;
+                        }
+                }
+            }
 
-	  # Skip any donors who already have the applicable major version of a
-	  # variant-calling workflow run
-	  my $variant_workflow = $sample_information->{$center_name}->{$donor_id}->{variant_workflow};
-	  delete $sample_information->{$center_name}->{$donor_id}->{variant_workflow}; # or else mess up specimen count
-	  if ($variant_workflow && ref $variant_workflow eq 'HASH') {
-	      if (my $variant_workflow_version = $variant_workflow->{$workflow_name} ) {
-		    my @have_version = split '.', $variant_workflow_version;
-		    my @need_version = split '.', $workflow_version;
-		    my $skip_donor = $have_version[0] == $need_version[0] && $have_version[1] == $need_version[1];
-		    if ($skip_donor) {
-			say STDERR "Skipping donor $donor_id because $workflow_name has already been run";
-			next DONOR;
-		    }
-
-		}
-	    }
-
-          # put in the running+failed+completed
-	  my $unavail_samples = {};
-	  foreach my $key (keys %{$running_samples}) {
-	      $unavail_samples->{$key} = 1;
-	  }
-	  foreach my $key (keys %{$failed_samples}) {
-	      $unavail_samples->{$key} = 1;
-	  }
-	  foreach my $key (keys %{$completed_samples}) {
-	      $unavail_samples->{$key} = 1;
-	  }
-
-	  # Skip non-whitelisted donors if applicable
-	  my $on_whitelist = grep {/^$donor_id/} @whitelist;
-
-	  if (scalar(@whitelist) == 0 or $on_whitelist) {
-	      say STDERR "Donor $donor_id is on the whitelist" if $on_whitelist;
-
-	      my $donor_information = $sample_information->{$center_name}{$donor_id};
-
-	      $self->schedule_donor($report_file,
-				    $donor_id,
-				    $donor_information,
-				    $cluster_information,
-				    $unavail_samples,
-				    $skip_scheduling,
-				    $specific_sample,
-				    $ignore_lane_count,
-				    $seqware_settings_file,
-				    $output_dir,
-				    $output_prefix,
-				    $force_run,
-				    $threads,
-				    $skip_gtdownload,
-				    $skip_gtupload,
-				    $upload_results,
-				    $input_prefix,
-				    $gnos_url,
-				    $ignore_failed,
-				    $working_dir,
-				    $center_name,
-				    $workflow_version,
-				    $bwa_workflow_version,
-				    $whitelist,
-				    $blacklist,
-				    $tabix_url,
-				    $pem_file
-		  );
-	  }
-	  elsif (@whitelist > 0) {
-	      say STDERR "Donor $donor_id is not on the whitelist";
-	  }
-      }
+            # put in the running+failed+completed
+            my $unavail_samples = {};
+            foreach my $key (keys %{$running_samples}) {
+                $unavail_samples->{$key} = 1;
+            }
+            foreach my $key (keys %{$failed_samples}) {
+                $unavail_samples->{$key} = 1;
+            }
+            foreach my $key (keys %{$completed_samples}) {
+                $unavail_samples->{$key} = 1;
+            }
+  
+            # Skip non-whitelisted donors if applicable
+            my $on_whitelist = grep {/^$donor_id/} @whitelist;
+  
+            if (scalar(@whitelist) == 0 or $on_whitelist) {
+                say STDERR "Donor $donor_id is on the whitelist" if $on_whitelist;
+  
+                my $donor_information = $sample_information->{$center_name}{$donor_id};
+                 
+                $self->schedule_donor($report_file,
+                                      $donor_id,
+                                      $donor_information,
+                                      $cluster_information,
+                                      $unavail_samples,
+                                      $skip_scheduling,
+                                      $specific_sample,
+                                      $ignore_lane_count,
+                                      $seqware_settings_file,
+                                      $output_dir,
+                                      $output_prefix,
+                                      $force_run,
+                                      $threads,
+                                      $skip_gtdownload,
+                                      $skip_gtupload,
+                                      $upload_results,
+                                      $input_prefix,
+                                      $gnos_url,
+                                      $ignore_failed,
+                                      $working_dir,
+                                      $center_name,
+                                      $workflow_version,
+                                      $bwa_workflow_version,
+                                      $whitelist,
+                                      $blacklist,
+                                      $tabix_url,
+                                      $pem_file);
+            }
+            elsif (@whitelist > 0) {
+                say STDERR "Donor $donor_id is not on the whitelist";
+            }
+        }
     }
 }
 
@@ -173,13 +170,13 @@ sub schedule_workflow {
          $output_prefix,
          $output_dir,
          $force_run,
-	 $threads,
+         $threads,
          $center_name,
          $workflow_version,
-	 $bwa_workflow_version,
-	 $tabix_url,
-	 $pem_file
-	) = @_;
+         $bwa_workflow_version,
+         $tabix_url,
+         $pem_file
+        ) = @_;
 
     my $cluster = (keys %{$cluster_information})[0];
     my $cluster_found = (defined($cluster) and $cluster ne '' )? 1: 0;
@@ -199,44 +196,44 @@ sub schedule_workflow {
     if ($cluster_found or $skip_scheduling) {
         system("mkdir -p $Bin/../$working_dir/ini");
         $self->create_workflow_settings(
-	    $donor,
-	    $seqware_settings_file,
-	    $url,
-	    $username,
-	    $password,
-	    $working_dir,
-	    $center_name
-	    );
+            $donor,
+            $seqware_settings_file,
+            $url,
+            $username,
+            $password,
+            $working_dir,
+            $center_name
+            );
 
         $self->create_workflow_ini(
-	    $donor,
-	    $workflow_version,
-	    $gnos_url,
-	    $threads,
-	    $skip_gtdownload,
-	    $skip_gtupload,
-	    $upload_results,
-	    $output_prefix,
-	    $output_dir,
-	    $working_dir,
-	    $center_name,
-	    $tabix_url,
-	    $pem_file,
-	    $self->{gnos_upload_url}
-	    );
+            $donor,
+            $workflow_version,
+            $gnos_url,
+            $threads,
+            $skip_gtdownload,
+            $skip_gtupload,
+            $upload_results,
+            $output_prefix,
+            $output_dir,
+            $working_dir,
+            $center_name,
+            $tabix_url,
+            $pem_file,
+            $self->{gnos_upload_url}
+            );
     }
 
     $self->submit_workflow(
-	$working_dir,
-	$workflow_accession,
-	$host,
-	$skip_scheduling,
-	$cluster_found,
-	$report_file,
-	$url,
-	$center_name,
-	$donor_id
-	);
+        $working_dir,
+        $workflow_accession,
+        $host,
+        $skip_scheduling,
+        $cluster_found,
+        $report_file,
+        $url,
+        $center_name,
+        $donor_id
+        );
 
     delete $cluster_information->{$cluster} if ($cluster_found);
 }
@@ -244,14 +241,14 @@ sub schedule_workflow {
 sub submit_workflow {
     my $self = shift;
     my ($working_dir,
-	$accession,
-	$host,
-	$skip_scheduling,
-	$cluster_found,
-	$report_file,
-	$url,
-	$center_name,
-	$donor_id) = @_;
+        $accession,
+        $host,
+        $skip_scheduling,
+        $cluster_found,
+        $report_file,
+        $url,
+        $center_name,
+        $donor_id) = @_;
 
     my $dir = getcwd();
     $working_dir =  "$Bin/../$working_dir/ini/$donor_id";
@@ -291,7 +288,7 @@ sub submit_workflow {
         print $err_fh $std_err if($std_err);
 
         say $report_file "\t\tSOMETHING WENT WRONG WITH SCHEDULING THE WORKFLOW: Check error log =>  ",
-	"$Bin/../$submission_path/$donor_id.e and output log => $Bin/../$submission_path/$donor_id.o" if $std_err;
+        "$Bin/../$submission_path/$donor_id.e and output log => $Bin/../$submission_path/$donor_id.o" if $std_err;
     }
     else {
         print "\tNOT LAUNCHING WORKFLOW, NO CLUSTER AVAILABLE: $ini\n";
@@ -325,12 +322,12 @@ sub schedule_donor {
          $working_dir,
          $center_name,
          $workflow_version,
-	 $bwa_workflow_version,
+         $bwa_workflow_version,
          $whitelist,
          $blacklist,
-	 $tabix_url,
-	 $pem_file
-	) = @_;
+         $tabix_url,
+         $pem_file
+        ) = @_;
 
     say "GOING TO SCHEDULE";
     say $report_file "\nDONOR/PARTICIPANT: $donor_id\n";
@@ -356,7 +353,7 @@ sub schedule_donor {
       # need to skip any "donors" that are named below because they aren't really donors!
       next if ($donor_id eq "submitter_donor_id" || $donor_id eq "dcc_project_code");
 
-	$specimens{$donor_id}++;
+        $specimens{$donor_id}++;
 
         next if defined $specific_sample and $specific_sample ne $donor_id;
 
@@ -364,122 +361,122 @@ sub schedule_donor {
 
         if (@whitelist == 0 or grep {/^$donor_id$/} @whitelist) {
 
-	    my $alignments = $donor_information->{$donor_id};
+            my $alignments = $donor_information->{$donor_id};
 
-	    push @{$donor->{gnos_url}}, $gnos_url;
+            push @{$donor->{gnos_url}}, $gnos_url;
 
-	    my %said;
+            my %said;
 
-	    foreach my $alignment_id (keys %{$alignments}) {
+            foreach my $alignment_id (keys %{$alignments}) {
 
                 # Skip unaligned BAMs, not relevant to VC workflows
-		my $aliquots = $alignments->{$alignment_id};
-		foreach my $aliquot_id (keys %{$aliquots}) {
-		    $donor->{aliquot_ids}->{$alignment_id} = $aliquot_id;
+                my $aliquots = $alignments->{$alignment_id};
+                foreach my $aliquot_id (keys %{$aliquots}) {
+                    $donor->{aliquot_ids}->{$alignment_id} = $aliquot_id;
 
-		    my $libraries = $aliquots->{$aliquot_id};
-		    foreach my $library_id (keys %{$libraries}) {
-			my $library = $libraries->{$library_id};
-
-
-			my $current_bwa_workflow_version = $library->{bwa_workflow_version};
-			my @current_bwa_workflow_version = keys %$current_bwa_workflow_version;
-			$current_bwa_workflow_version = $current_bwa_workflow_version[0];
-
-			my @current_bwa_workflow_version = split /\./, $current_bwa_workflow_version;
-			my @run_bwa_workflow_versions = split /\./, $bwa_workflow_version;
+                    my $libraries = $aliquots->{$aliquot_id};
+                    foreach my $library_id (keys %{$libraries}) {
+                        my $library = $libraries->{$library_id};
 
 
-			# Should add to list of aligns if the BWA workflow has already been run
-			# and the first two version numbers are equal to the
-			# desired BWA workflow version.
-			if (
-			    defined $current_bwa_workflow_version
-			    and $current_bwa_workflow_version[0] == $run_bwa_workflow_versions[0]
-			    and $current_bwa_workflow_version[1] == $run_bwa_workflow_versions[1]
-			    ) {
-			    $aligns->{$alignment_id} = 1;
-			}
-			else {
-			}
+                        my $current_bwa_workflow_version = $library->{bwa_workflow_version};
+                        my @current_bwa_workflow_version = keys %$current_bwa_workflow_version;
+                        $current_bwa_workflow_version = $current_bwa_workflow_version[0];
 
-			next unless $aligns->{$alignment_id};
-
-			#
-			# If we got here, we have a useable alignment
-			#
-			$aligned_specimens{$donor_id}++;
-
-			$aliquot{$alignment_id} = $aliquot_id;
-
-			my ($dcc_specimen_type) = keys %{$library->{dcc_specimen_type}};
-			# safer way to tell
-			# see https://wiki.oicr.on.ca/display/PANCANCER/PCAWG+%28a.k.a.+PCAP+or+PAWG%29+Sequence+Submission+SOP+-+v1.0
-			# the Appendix has a list of all possible terms.
-			if ($dcc_specimen_type =~ /normal/i) {
-			    $normal{$alignment_id}++;
-			}
-			elsif ($dcc_specimen_type =~ /tumou?r|xenograft|cell line/i) {
-			    $tumor{$alignment_id}++;
-			}
-			else {
-			    say STDERR "This is an unknown sample type!";
-			}
-
-			# We can't use this!
-			next unless keys %tumor or keys %normal;
-
-			my $sample_type = $normal{$alignment_id} ? 'NORMAL' : $tumor{$alignment_id} ? 'TUMOR' : 'UNKNOWN';
-
-			say $report_file "\tSAMPLE OVERVIEW\n\tSPECIMEN/SAMPLE: $donor_id ($sample_type)" unless $said{$donor_id}++;
-
-			say $report_file "\t\tALIGNMENT: $alignment_id ";
-			say $report_file "\t\t\tANALYZED SAMPLE/ALIQUOT: $aliquot_id";
-			say $report_file "\t\t\t\tLIBRARY: $library_id";
-
-			my $files = $library->{files};
-			my @local_bams;
-			foreach my $file (keys %{$files}) {
-			    my $local_path = $files->{$file}{local_path};
-			    push @local_bams, $local_path if ($local_path =~ /bam$/);
-			    $donor->{bam_ids}->{$alignment_id} = $local_path;
-			}
-
-			my @analysis_ids = keys %{$library->{analysis_ids}};
-			my $analysis_ids = join ',', @analysis_ids;
-
-			say $report_file "\t\t\t\t\tBAMS: ".join ',', @local_bams;
-			say $report_file "\t\t\t\t\tANALYSIS IDS: $analysis_ids\n";
-
-			$donor->{analysis_ids}->{$alignment_id} = @analysis_ids;
-			$donor->{alignment_genome} = $library->{alignment_genome};
-			$donor->{library_strategy} = $library->{library_strategy};
-
-			foreach my $file (keys %{$files}) {
-			    my $local_path = $files->{$file}{local_path};
-			    if ($local_path =~ /bam$/) {
-				$donor->{file}->{$file} = $local_path;
-				my $local_file_path = $input_prefix.$local_path;
-				$donor->{local_bams}{$local_file_path} = 1;
-				$donor->{bam_count} ++;
-			    }
+                        my @current_bwa_workflow_version = split /\./, $current_bwa_workflow_version;
+                        my @run_bwa_workflow_versions = split /\./, $bwa_workflow_version;
 
 
-			    my @local_bams = keys %{$donor->{local_bams}};
+                        # Should add to list of aligns if the BWA workflow has already been run
+                        # and the first two version numbers are equal to the
+                        # desired BWA workflow version.
+                        if (
+                            defined $current_bwa_workflow_version
+                            and $current_bwa_workflow_version[0] == $run_bwa_workflow_versions[0]
+                            and $current_bwa_workflow_version[1] == $run_bwa_workflow_versions[1]
+                            ) {
+                            $aligns->{$alignment_id} = 1;
+                        }
+                        else {
+                        }
 
-			    $donor->{local_bams_string} = join ',', sort @local_bams;
+                        next unless $aligns->{$alignment_id};
 
-			    foreach my $analysis_id (sort @analysis_ids) {
-				$donor->{analysis_url}->{"$gnos_url/cghub/metadata/analysisFull/$analysis_id"} = 1;
-				$donor->{download_url}->{"$gnos_url/cghub/data/analysis/download/$analysis_id"} = 1;
-			    }
+                        #
+                        # If we got here, we have a useable alignment
+                        #
+                        $aligned_specimens{$donor_id}++;
 
-			    push @{$donor->{donor_id}},$donor_id;
-			}
-		    }
-		}
-	    }
-	}
+                        $aliquot{$alignment_id} = $aliquot_id;
+
+                        my ($dcc_specimen_type) = keys %{$library->{dcc_specimen_type}};
+                        # safer way to tell
+                        # see https://wiki.oicr.on.ca/display/PANCANCER/PCAWG+%28a.k.a.+PCAP+or+PAWG%29+Sequence+Submission+SOP+-+v1.0
+                        # the Appendix has a list of all possible terms.
+                        if ($dcc_specimen_type =~ /normal/i) {
+                            $normal{$alignment_id}++;
+                        }
+                        elsif ($dcc_specimen_type =~ /tumou?r|xenograft|cell line/i) {
+                            $tumor{$alignment_id}++;
+                        }
+                        else {
+                            say STDERR "This is an unknown sample type!";
+                        }
+
+                        # We can't use this!
+                        next unless keys %tumor or keys %normal;
+
+                        my $sample_type = $normal{$alignment_id} ? 'NORMAL' : $tumor{$alignment_id} ? 'TUMOR' : 'UNKNOWN';
+
+                        say $report_file "\tSAMPLE OVERVIEW\n\tSPECIMEN/SAMPLE: $donor_id ($sample_type)" unless $said{$donor_id}++;
+
+                        say $report_file "\t\tALIGNMENT: $alignment_id ";
+                        say $report_file "\t\t\tANALYZED SAMPLE/ALIQUOT: $aliquot_id";
+                        say $report_file "\t\t\t\tLIBRARY: $library_id";
+
+                        my $files = $library->{files};
+                        my @local_bams;
+                        foreach my $file (keys %{$files}) {
+                            my $local_path = $files->{$file}{local_path};
+                            push @local_bams, $local_path if ($local_path =~ /bam$/);
+                            $donor->{bam_ids}->{$alignment_id} = $local_path;
+                        }
+
+                        my @analysis_ids = keys %{$library->{analysis_ids}};
+                        my $analysis_ids = join ',', @analysis_ids;
+
+                        say $report_file "\t\t\t\t\tBAMS: ".join ',', @local_bams;
+                        say $report_file "\t\t\t\t\tANALYSIS IDS: $analysis_ids\n";
+
+                        $donor->{analysis_ids}->{$alignment_id} = @analysis_ids;
+                        $donor->{alignment_genome} = $library->{alignment_genome};
+                        $donor->{library_strategy} = $library->{library_strategy};
+
+                        foreach my $file (keys %{$files}) {
+                            my $local_path = $files->{$file}{local_path};
+                            if ($local_path =~ /bam$/) {
+                                $donor->{file}->{$file} = $local_path;
+                                my $local_file_path = $input_prefix.$local_path;
+                                $donor->{local_bams}{$local_file_path} = 1;
+                                $donor->{bam_count} ++;
+                            }
+
+
+                            my @local_bams = keys %{$donor->{local_bams}};
+
+                            $donor->{local_bams_string} = join ',', sort @local_bams;
+
+                            foreach my $analysis_id (sort @analysis_ids) {
+                                $donor->{analysis_url}->{"$gnos_url/cghub/metadata/analysisFull/$analysis_id"} = 1;
+                                $donor->{download_url}->{"$gnos_url/cghub/data/analysis/download/$analysis_id"} = 1;
+                            }
+
+                            push @{$donor->{donor_id}},$donor_id;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     $donor->{gnos_url} = join(',',@{$donor->{gnos_url}});
@@ -496,40 +493,40 @@ sub schedule_donor {
     # First, relate time stamp to alignment IDs
     my %aln_date;
     for my $aln (keys %normal, keys %tumor) {
-	my ($timestamp) = reverse split /\s+/, $aln;
-	$aln_date{$aln} = $timestamp;
+        my ($timestamp) = reverse split /\s+/, $aln;
+        $aln_date{$aln} = $timestamp;
     }
 
     # Next, grab the youngest alignment for each aliquot
     my %youngest_aln_aliquot;
     for my $aln (keys %normal, keys %tumor) {
-	my $aliquot   = $aliquot{$aln};
-	my $timestamp = $aln_date{$aln};
-	my $alignment = $youngest_aln_aliquot{$aliquot};
+        my $aliquot   = $aliquot{$aln};
+        my $timestamp = $aln_date{$aln};
+        my $alignment = $youngest_aln_aliquot{$aliquot};
 
-	if (not $alignment) {
-	    $youngest_aln_aliquot{$aliquot} = $aln;
-	}
-	else {
-	    my ($youngest) = reverse sort ($timestamp,$aln_date{$alignment});
-	    if ($timestamp eq $youngest) {
-		$youngest_aln_aliquot{$aliquot} = $aln;
-	    }
-	}
+        if (not $alignment) {
+            $youngest_aln_aliquot{$aliquot} = $aln;
+        }
+        else {
+            my ($youngest) = reverse sort ($timestamp,$aln_date{$alignment});
+            if ($timestamp eq $youngest) {
+                $youngest_aln_aliquot{$aliquot} = $aln;
+            }
+        }
     }
 
     # Then relate back to the alignmend IDs in the tumor and normal hashes
     # Change keys from aliquot ID to alignment ID
     my %youngest_aln;
     for my $aliquot (keys %youngest_aln_aliquot) {
-	$youngest_aln{$youngest_aln_aliquot{$aliquot}}++;
+        $youngest_aln{$youngest_aln_aliquot{$aliquot}}++;
     }
 
     # Then remove older alignments from the tumor and normal sets
     for my $aln (keys %normal) {
-	unless ($youngest_aln{$aln}) {
-	    delete $normal{$aln};
-	}
+        unless ($youngest_aln{$aln}) {
+            delete $normal{$aln};
+        }
     }
     for my $aln (keys %tumor) {
         unless ($youngest_aln{$aln}) {
@@ -548,13 +545,13 @@ sub schedule_donor {
     #print Dumper $missing_sample;
 
     if ($unpaired_specimens) {
-	say $report_file "This set is missing a tumor or control; skipping";
-	return 1;
+        say $report_file "This set is missing a tumor or control; skipping";
+        return 1;
     }
 
     if ($missing_sample) {
-	say $report_file "Not all samples have been aligned for this donor; skipping...";
-	return 1;
+        say $report_file "Not all samples have been aligned for this donor; skipping...";
+        return 1;
     }
 
     my $kept = (keys %tumor) + (keys %normal);
@@ -564,8 +561,8 @@ sub schedule_donor {
 
     $donor->{donor_id} = $donor_id;
     for my $analysis (keys %{$donor->{analysis_ids}}) {
-	my ($actual_id) = $analysis =~ /^\S+ - (\S+)/;
-	$donor->{analysis_ids}->{$analysis} = $actual_id;
+        my ($actual_id) = $analysis =~ /^\S+ - (\S+)/;
+        $donor->{analysis_ids}->{$analysis} = $actual_id;
     }
     $donor->{normal} = \%normal;
     $donor->{tumor}  = \%tumor;
@@ -574,31 +571,31 @@ sub schedule_donor {
     print "\nABOUT TO SCHEDULE $donor_id";
 
     $self->schedule_workflow( $donor,
-			      $seqware_settings_file,
-			      $report_file,
-			      $cluster_information,
-			      $working_dir,
-			      $gnos_url,
-			      $skip_gtdownload,
-			      $skip_gtupload,
-			      $skip_scheduling,
-			      $upload_results,
-			      $output_prefix,
-			      $output_dir,
-			      $force_run,
-			      $threads,
-			      $center_name,
-			      $workflow_version,
-			      $bwa_workflow_version,
-			      $tabix_url,
-			      $pem_file
-	)
-	if $self->should_be_scheduled(
-	    $report_file,
-	    $skip_scheduling,
+                              $seqware_settings_file,
+                              $report_file,
+                              $cluster_information,
+                              $working_dir,
+                              $gnos_url,
+                              $skip_gtdownload,
+                              $skip_gtupload,
+                              $skip_scheduling,
+                              $upload_results,
+                              $output_prefix,
+                              $output_dir,
+                              $force_run,
+                              $threads,
+                              $center_name,
+                              $workflow_version,
+                              $bwa_workflow_version,
+                              $tabix_url,
+                              $pem_file
+        )
+        if $self->should_be_scheduled(
+            $report_file,
+            $skip_scheduling,
             $running_samples,
             $donor, $center_name
-	);
+        );
 }
 
 sub should_be_scheduled {
@@ -653,11 +650,11 @@ sub previously_failed_running_or_completed {
 sub scheduled {
     my $self = shift;
     my ($report_file,
-	$donor,
-	$running_samples,
-	$force_run,
-	$ignore_failed,
-	$ignore_lane_count ) = @_;
+        $donor,
+        $running_samples,
+        $force_run,
+        $ignore_failed,
+        $ignore_lane_count ) = @_;
 
     my $analysis_url_str = join ',', sort keys %{$donor->{analysis_url}};
     $donor->{analysis_url} = $analysis_url_str;
@@ -669,9 +666,9 @@ sub scheduled {
         say $report_file "\t\tNOT PREVIOUSLY SCHEDULED OR RUN FORCED!";
     }
     elsif (( (exists($running_samples->{$donor_id}{failed})
-	     and (scalar keys %{$running_samples->{$donor_id}} == 1))
-	     or  ( exists($running_samples->{$analysis_url_str}{failed})
-	     and (scalar keys %{$running_samples->{$analysis_url_str}} == 1)))
+             and (scalar keys %{$running_samples->{$donor_id}} == 1))
+             or  ( exists($running_samples->{$analysis_url_str}{failed})
+             and (scalar keys %{$running_samples->{$analysis_url_str}} == 1)))
              and $ignore_failed) {
         say $report_file "\t\tPREVIOUSLY FAILED BUT RUN FORCED VIA IGNORE FAILED OPTION!";
     }
@@ -683,7 +680,7 @@ sub scheduled {
 
     if ($donor->{total_lanes} == $donor->{bam_count} || $ignore_lane_count || $force_run) {
         say $report_file "\t\tLANE COUNT MATCHES OR IGNORED OR RUN FORCED: ignore_lane_count: ",
-	"$ignore_lane_count total lanes: $donor->{total_lanes} bam count: $donor->{bams_count}\n";
+        "$ignore_lane_count total lanes: $donor->{total_lanes} bam count: $donor->{bams_count}\n";
     }
     else {
         say $report_file "\t\tLANE COUNT MISMATCH!";

@@ -1,6 +1,9 @@
 package GNOS::SampleInformation;
 
-use common::sense;
+use strict;
+use warnings;
+
+use feature qw(say);
 
 use IPC::System::Simple;
 use autodie qw(:all);
@@ -23,22 +26,23 @@ sub new {
 }
 
 sub get {
-    my ($self, $working_dir, $gnos_url, $use_cached_xml, $whitelist, $blacklist) = @_;
+    my ($self, $working_dir, $gnos_url, $use_cached_xml, $use_cached_analysis, $whitelist, $blacklist) = @_;
 
     system "mkdir -p $working_dir";
     open my $parse_log, '>', "$Bin/../$working_dir/xml_parse.log";
 
     my $participants = {};
 
-    my $cmd = "mkdir -p $working_dir/xml; cgquery -s $gnos_url -o $Bin/../$working_dir/xml/data.xml";
+    my $data_xml_path = "$Bin/../$working_dir/xml/data.xml";
+    my $cmd = "mkdir -p $working_dir/xml; cgquery -s $gnos_url -o $data_xml_path";
     $cmd .= ($gnos_url =~ /cghub.ucsc.edu/)? " 'study=PAWG&state=live'":" 'study=*&state=live'";
 
     say $parse_log "cgquery command: $cmd";
 
-    system($cmd);
+    system($cmd) if ((! -e $data_xml_path) or (! $use_cached_xml));
 
     my $xs = XML::LibXML::Simple->new(forcearray => 0, keyattr => 0 );
-    my $data = $xs->XMLin("$Bin/../$working_dir/xml/data.xml");
+    my $data = $xs->XMLin($data_xml_path);
 
     my $results = $data->{Result};
 
@@ -89,7 +93,7 @@ sub get {
             say $parse_log "SKIPPING: no analysis url";
             next;
         }
-
+        next unless ($analysis_id eq '265a8f8e-f6c7-4ea3-a997-230fdc8a3b82');
         say $parse_log "\n\nANALYSIS\n";
         say $parse_log "\tANALYSIS FULL URL: $analysis_full_url $analysis_id";
         my $analysis_xml_path =  "$Bin/../$working_dir/xml/data_$analysis_id.xml";
@@ -103,7 +107,7 @@ sub get {
         }
 
         if (not -e $analysis_xml_path or not eval {$xs->XMLin($analysis_xml_path); } ) {
-           say $parse_log "skipping $analysis_id - no xml file available: $analysis_xml_path";
+           say $parse_log "SKIPPING: $analysis_id - no xml file available: $analysis_xml_path";
            die;
         }
 
@@ -124,7 +128,6 @@ sub get {
 
         my %analysis_result = %{$analysis_result};
         my $upload_date = $analysis_result{upload_date};
-        my $analysis_xml_path =  "$working_dir/xml/data_$analysis_id.xml";
         my $center_name = $analysis_result{center_name};
         my $analysis_data_uri = $analysis_result{analysis_data_uri};
         my $aliquot_id = $analysis_result{aliquot_id};
@@ -159,7 +162,7 @@ sub get {
 	    $bam_type = $attributes{workflow_output_bam_contents};
 	    # if the workflow_output_bam_contents is missing look for qc_metrics, the unaligned bams do not have qc_metrics
 	    # 2.6.0 workflows should have the workflow_output_bam_contents field but I suspect an early release candidate did not
-	    if ($bam_type eq '' || !defined($bam_type)) {
+	    if (!defined($bam_type) || $bam_type eq '') {
 		if (defined($attributes{qc_metrics}) && $attributes{qc_metrics} ne '') {
 		    $bam_type = "aligned";
 		} else {
@@ -201,6 +204,8 @@ sub get {
 	# make sure the donor ID is unique for white/blacklist purposes;
 	my $donor_id =  join('-',$dcc_project_code,$submitter_donor_id);
 
+        $submitter_sample_id //= '';
+        $workflow_name //= '';
         say $parse_log "\tPROJECT CODE:\t$dcc_project_code";
         say $parse_log "\tDONOR UNIQUE ID:\t$donor_id";
         say $parse_log "\tANALYSIS:\t$analysis_data_uri";
@@ -216,7 +221,7 @@ sub get {
 	# We don't need to save the analysis for variant calls, just
 	# to record that it has been run.
 	if ($vc_workflow_name && $vc_workflow_version) {
-	    # just record the newer one if an earlier vertsion exists
+	    # just record the newer one if an earlier version exists
 	    if ( my $version = $variant_workflow->{$donor_id}->{$vc_workflow_name} ) {
 		my @version1 = split '.', $version;
 		my @version2 = split ',', $vc_workflow_version;
@@ -226,8 +231,6 @@ sub get {
 	    }
 
 	    $variant_workflow->{$donor_id}->{$vc_workflow_name} = $vc_workflow_version;
-	    say $parse_log "\t\tSKIPPING SINCE ALREADY VARIANT CALLED WITH WORKFLOW: $vc_workflow_name VERSION: $vc_workflow_version";
-	    next;
 	}
 
         # We don't need to save the analysis if there is no workflow name or version
@@ -235,87 +238,87 @@ sub get {
 	    say $parse_log "\tNO WORKFLOW INFORMATION; analysis skipped";
 	    next;
 	}
-
-        # don't save the analysis if unaligned
-        if ($bam_type eq 'unaligned') {
-          say $parse_log "\tUNALIZED BAM; analysis skipped";
-          next;
+        
+        if ($workflow_name eq 'Workflow_Bundle_BWA') {
+            # don't save the analysis if unaligned 
+            if ($bam_type eq 'unaligned') {
+                say $parse_log "\tUNALIGNED BAM; analysis skipped";
+                next;
+            }
+    
+            chomp $analysis_result{experiment_xml};
+    
+            my $library_descriptor;
+            if (exists ($analysis_result{experiment_xml}) and ( ref($analysis_result{experiment_xml}) eq 'HASH') ) {
+    
+                 if (ref($analysis_result{experiment_xml}{EXPERIMENT_SET}{EXPERIMENT}) eq 'HASH') {
+                     $library_descriptor = $analysis_result{experiment_xml}{EXPERIMENT_SET}{EXPERIMENT}{DESIGN}{LIBRARY_DESCRIPTOR};
+                 }
+                 else {
+                     $library_descriptor = $analysis_result{experiment_xml}{EXPERIMENT_SET}{EXPERIMENT}[0]{DESIGN}{LIBRARY_DESCRIPTOR};
+                 }
+            }
+            my %library = (ref($library_descriptor) eq 'HASH')? %{$library_descriptor} : ();
+            my $library_name = $library{LIBRARY_NAME};
+            my $library_strategy = $library{LIBRARY_STRATEGY};
+            my $library_source = $library{LIBRARY_SOURCE};
+    
+            say $parse_log "\tLibrary\n\t\tName:\t$library_name\n\t\tLibrary Strategy:\t$library_strategy\n\t\tLibrary Source:\t$library_source";
+    
+            if (not $library_name or not $library_strategy or not $library_source or not $analysis_id or not $analysis_data_uri) {
+                say $parse_log "\tERROR: one or more critical fields not defined, will skip $analysis_id\n";
+                next;
+            }
+    
+            say $parse_log "\tgtdownload -c gnostest.pem -v -d $analysis_data_uri\n";
+    
+            #This takes into consideration the files that were submitted with the old SOP
+            if ((defined $submitter_donor_id) and (defined $submitter_donor_id ne '')) {
+                $submitter_sample_id = $submitter_specimen_id;
+            }
+    
+            $sample_id = (defined $submitter_specimen_id) ? $submitter_specimen_id: $sample_id;
+            $center_name //= 'unknown';
+    
+            my $library = {
+                    analysis_ids             => $analysis_id,
+                    analysis_url             => $analysis_data_uri,
+                    library_name             => $library_name,
+                    library_strategy         => $library_strategy,
+                    library_source           => $library_source,
+                    alignment_genome         => $alignment,
+                    bam_type                 => $bam_type,
+                    total_lanes              => $total_lanes,
+                    sample_id                => $sample_id,
+                    submitter_sample_id      => $submitter_sample_id,
+                    sample_uuid              => $sample_uuid,
+                    bwa_workflow_version     => $bwa_workflow_version,
+                    dcc_specimen_type        => $dcc_specimen_type
+                  };
+    
+            $center_name = 'seqware';
+            if ($alignment ne 'unaligned') {
+                $alignment = "$alignment - $analysis_id - $bwa_workflow_name - $bwa_workflow_version - $upload_date";
+            }
+             
+    
+            foreach my $attribute (keys %{$library}) {
+                my $library_value = $library->{$attribute};
+                $participants->{$center_name}{$donor_id}{$sample_id}{$alignment}{$aliquot_id}{$library_name}{$attribute}{$library_value} = 1;
+            }
+            my $files = files($analysis_result, $parse_log, $analysis_id);
+            foreach my $file_name (keys %$files) {
+                my $file_info = $files->{$file_name};
+                $participants->{$center_name}{$donor_id}{$sample_id}{$alignment}{$aliquot_id}{$library_name}{files}{$file_name} = $file_info;
+            }
+        } 
+        elsif ($workflow_name eq 'SangerPancancerCgpCnIndelSnvStr') {
+	    # Save VC workflow data without mangling
+	    $participants->{$center_name}{$donor_id}{variant_workflow} = $variant_workflow;
+            # save info on project and donor code
+            $participants->{$center_name}{$donor_id}{dcc_project_code} = $dcc_project_code;
+            $participants->{$center_name}{$donor_id}{submitter_donor_id} = $submitter_donor_id;
         }
-
-	my ($library_name, $library_strategy, $library_source);
-        my $library_descriptor;
-        if (exists ($analysis_result{experiment_xml})) {
-
-             if (ref($analysis_result{experiment_xml}{EXPERIMENT_SET}{EXPERIMENT}) eq 'HASH') {
-                 $library_descriptor = $analysis_result{experiment_xml}{EXPERIMENT_SET}{EXPERIMENT}{DESIGN}{LIBRARY_DESCRIPTOR};
-             }
-             else {
-                 $library_descriptor = $analysis_result{experiment_xml}{EXPERIMENT_SET}{EXPERIMENT}[0]{DESIGN}{LIBRARY_DESCRIPTOR};
-             }
-        }
-        my %library = (ref($library_descriptor) == 'HASH')? %{$library_descriptor} : ();
-        my $library_name = $library{LIBRARY_NAME};
-        my $library_strategy = $library{LIBRARY_STRATEGY};
-        my $library_source = $library{LIBRARY_SOURCE};
-
-        say $parse_log "\tLibrary\n\t\tName:\t$library_name\n\t\tLibrary Strategy:\t$library_strategy\n\t\tLibrary Source:\t$library_source";
-
-        if (not $library_name or not $library_strategy or not $library_source or not $analysis_id or not $analysis_data_uri) {
-            say $parse_log "\tERROR: one or more critical fields not defined, will skip $analysis_id\n";
-            next;
-        }
-
-        say $parse_log "\tgtdownload -c gnostest.pem -v -d $analysis_data_uri\n";
-
-        #This takes into consideration the files that were submitted with the old SOP
-        if ((defined $submitter_donor_id) and (defined $submitter_donor_id ne '')) {
-            $submitter_sample_id = $submitter_specimen_id;
-        }
-
-        $sample_id = (defined $submitter_specimen_id) ? $submitter_specimen_id: $sample_id;
-        $center_name //= 'unknown';
-
-        my $library = {
-	    analysis_ids             => $analysis_id,
-	    analysis_url             => $analysis_data_uri,
-	    library_name             => $library_name,
-	    library_strategy         => $library_strategy,
-	    library_source           => $library_source,
-	    alignment_genome         => $alignment,
-            bam_type                 => $bam_type,
-	    total_lanes              => $total_lanes,
-	    sample_id                => $sample_id,
-	    submitter_sample_id      => $submitter_sample_id,
-	    sample_uuid              => $sample_uuid,
-	    bwa_workflow_version     => $bwa_workflow_version,
-	    dcc_specimen_type        => $dcc_specimen_type
-	};
-
-        $center_name = 'seqware';
-        if ($alignment ne 'unaligned') {
-            $alignment = "$alignment - $analysis_id - $bwa_workflow_name - $bwa_workflow_version - $upload_date";
-        }
-
-
-	foreach my $attribute (keys %{$library}) {
-            my $library_value = $library->{$attribute};
-            $participants->{$center_name}{$donor_id}{$sample_id}{$alignment}{$aliquot_id}{$library_name}{$attribute}{$library_value} = 1;
-        }
-
-        my $files = files($analysis_result, $parse_log, $analysis_id);
-        foreach my $file_name (keys %$files) {
-            my $file_info = $files->{$file_name};
-            $participants->{$center_name}{$donor_id}{$sample_id}{$alignment}{$aliquot_id}{$library_name}{files}{$file_name} = $file_info;
-        }
-
-	# Save VC workflow data without mangling
-	$participants->{$center_name}->{$donor_id}->{variant_workflow} = $variant_workflow;
-
-  # save info on project and donor code
-  $participants->{$center_name}->{$donor_id}->{dcc_project_code} = $dcc_project_code;
-  $participants->{$center_name}->{$donor_id}->{submitter_donor_id} = $$submitter_donor_id;
-
-
     }
     close $parse_log;
 

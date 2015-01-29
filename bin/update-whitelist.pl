@@ -58,6 +58,8 @@ say 'Checking out latest tag';
 
 `cd $repo_path; git checkout $latest_tag`;
 
+
+##Create whitelist file
 my $whitelist_env_path = "$repo_path/variant_calling/$workflow/whitelists/$cloud_env";
 
 unless (-d $whitelist_env_path) {
@@ -83,18 +85,37 @@ foreach my $file_name (@file_list) {
 }
 
 if (!keys %files_to_consider) {
-    die "could not find files matching $cloud_env and GNOS repo $gnos_repo";
+    die "Could not find files matching $cloud_env and GNOS repo $gnos_repo";
 }
 
-my $latest_file = $files_to_consider{(reverse sort keys %files_to_consider)[0]};
+my $first_date = (sort keys %files_to_consider)[0];
+my $lastest_date = (sort keys %files_to_consider)[-1]
 
 say "Latest file is: $latest_file";
 
-my $latest_file_path = "$whitelist_env_path/$latest_file";
-say "Creating whitelist symlink:\n\tFrom $latest_file_path to $whitelist_target_path";
+#Creating latest whiteliste file
+my $whitelist_file_path = "$whitelist_env_path/whitelist-$first_date-to-$last_date.txt";
 
-`ln -sf $latest_file_path $whitelist_target_path`;
+if (-e $whitelist_file_path) {
+   say "Whitelist already exists ($whitelist_file_path): not creating";
+}
+else {
+    open my $out_fh, '>', $whitelist_file_path;
+    foreach my $date (sort keys %files_to_consider) {
+        open my $in_fh, '<', $files_to_consider{$date};
+        while (<$in_fh> {
+             say $out_fh $_;
+        }
+        close $in_fh;
+    }
+}
 
+say "Creating whitelist symlink:\n\tFrom $whitelist_file_path to $whitelist_target_path";
+
+`ln -sf $whitelist_file_path $whitelist_target_path`;
+
+
+##Creating blacklist file
 my $blacklist_file_path = "$repo_path/variant_calling/$workflow/blacklists/_all_sites/_all_sites.latest_blacklist.txt";
 
 unless (-f $blacklist_file_path) {

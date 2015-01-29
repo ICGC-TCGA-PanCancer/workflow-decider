@@ -77,7 +77,7 @@ Specify the bwa workflow required to proceed to variant calling (eg 2.6.0)
 
 =over
 
-=item --gnos-url[=][ ]<gnos_url>
+=item --download-gnos-url[=][ ]<gnos_url>
 
 URL for a GNOS server, e.g. https://gtrepo-ebi.annailabs.com
 
@@ -109,11 +109,15 @@ A flag indicating that previously download xml files for each analysis file shou
 
 The URL of the tabix server
 
-=item --pem-file[=][ ]<path_to_pem_file>
+=item --gt-download-pem-file[=][ ]<path_to_download_pem_file>
 
-Path to the Amazon EC2 key pair file
+Path to pem file on worker node that is used for dowloading from GNOS
 
 =back
+
+=item --gt-download-pem-file[=][ ]<path_to_upload_pem_file>
+
+Path to pem file on worker node that is used for uploading to GNOS
 
 =item --lwp-download-timeout[=][ ]<wait_time>
 

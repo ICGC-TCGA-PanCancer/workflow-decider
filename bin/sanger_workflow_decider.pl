@@ -45,6 +45,9 @@ my ($cluster_information, $running_sample_ids, $failed_samples, $completed_sampl
                                                   $ARGV{'--workflow-version'},
                                                   $ARGV{'--failure-reports-dir'});
 
+print Dumper \%ARGV;
+die;
+
 #my $failed_db = Decider::Database->failed_connect();
 
 #print "CLUSTER INFO:\n";
@@ -67,6 +70,7 @@ if ($ARGV{'--filter-downloads-by-blacklist'}) {
 my $sample_information = $gnos_info->get( $ARGV{'--working-dir'},
 					  $ARGV{'--gnos-url'},
 					  $ARGV{'--use-cached-xml'},
+                                          $ARGV{'--use-cached-analysis'},
 					  $whitelist,
 					  $blacklist);
 
