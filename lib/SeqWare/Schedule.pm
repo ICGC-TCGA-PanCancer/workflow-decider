@@ -71,7 +71,6 @@ sub schedule_samples {
         my @whitelist = grep {s/\s+/-/} @{$whitelist->{donor}} if $whitelist and $whitelist->{donor};
 
         DONOR: foreach my $donor_id (keys %{$sample_information->{$center_name}}) {
-           say $donor_id;
             # Only do specified donor if applicable
             next if defined $specific_donor and $specific_donor ne $donor_id;
 
