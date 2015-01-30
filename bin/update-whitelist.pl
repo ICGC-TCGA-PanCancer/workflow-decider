@@ -88,24 +88,29 @@ if (!keys %files_to_consider) {
     die "Could not find files matching $cloud_env and GNOS repo $gnos_repo";
 }
 
-my $first_date = (sort keys %files_to_consider)[0];
-my $lastest_date = (sort keys %files_to_consider)[-1]
+my $earliest_date = (sort keys %files_to_consider)[0];
+my $latest_date = (sort keys %files_to_consider)[-1];
 
-say "Latest file is: $latest_file";
+say "Latest file is: $files_to_consider{$latest_date}";
+
+#get whitelist folder
+my ($whitelist_folder, $whitelist_file_name) = $whitelist_target_path =~ m|^(.*[/\\])([^/\\]+?)$|;
 
 #Creating latest whiteliste file
-my $whitelist_file_path = "$whitelist_env_path/whitelist-$first_date-to-$last_date.txt";
+my $whitelist_file_path = "$whitelist_folder$cloud_env-whitelist-for-$gnos_repo-from-$earliest_date-to-$latest_date.txt";
 
 if (-e $whitelist_file_path) {
    say "Whitelist already exists ($whitelist_file_path): not creating";
 }
 else {
+    say "Creating file: $whitelist_file_path";
     open my $out_fh, '>', $whitelist_file_path;
     foreach my $date (sort keys %files_to_consider) {
-        open my $in_fh, '<', $files_to_consider{$date};
-        while (<$in_fh> {
-             say $out_fh $_;
-        }
+        open my $in_fh, '<', "$whitelist_env_path/$files_to_consider{$date}";
+
+        my $content = do { local $/; <$in_fh> }; #slurp file in
+        print $out_fh $content; #print to file
+
         close $in_fh;
     }
 }

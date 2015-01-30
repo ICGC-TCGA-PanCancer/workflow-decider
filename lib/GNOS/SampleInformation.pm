@@ -35,7 +35,7 @@ sub get {
 
     my $data_xml_path = "$Bin/../$working_dir/xml/data.xml";
     my $cmd = "mkdir -p $working_dir/xml; cgquery -s $gnos_url -o $data_xml_path";
-    $cmd .= ($gnos_url =~ /cghub.ucsc.edu/)? " 'study=PAWG&state=live'":" 'study=*&state=live'";
+    $cmd .= ($gnos_url =~ /cghub.ucsc.edu/)? " 'study=PCAWG\ 2.0&state=live'":" 'study=*&state=live'";
 
     say $parse_log "cgquery command: $cmd";
 
@@ -79,7 +79,6 @@ sub get {
     my $variant_workflow = {};
 
     my $i = 0;
-
     foreach my $result_id (keys %{$results}) {
         my $result = $results->{$result_id};
         my $analysis_full_url = $result->{analysis_full_uri};
@@ -93,7 +92,7 @@ sub get {
             say $parse_log "SKIPPING: no analysis url";
             next;
         }
-        next unless ($analysis_id eq '265a8f8e-f6c7-4ea3-a997-230fdc8a3b82');
+
         say $parse_log "\n\nANALYSIS\n";
         say $parse_log "\tANALYSIS FULL URL: $analysis_full_url $analysis_id";
         my $analysis_xml_path =  "$Bin/../$working_dir/xml/data_$analysis_id.xml";
@@ -202,10 +201,15 @@ sub get {
         my $sample_id = $submitter_sample_id;
 
 	# make sure the donor ID is unique for white/blacklist purposes;
+        $dcc_project_code //= 'unkonwn';
+        $submitter_donor_id //= 'unknown';
 	my $donor_id =  join('-',$dcc_project_code,$submitter_donor_id);
 
         $submitter_sample_id //= '';
         $workflow_name //= '';
+        $workflow_version //= '';
+        $bam_type //= '';
+        
         say $parse_log "\tPROJECT CODE:\t$dcc_project_code";
         say $parse_log "\tDONOR UNIQUE ID:\t$donor_id";
         say $parse_log "\tANALYSIS:\t$analysis_data_uri";
@@ -303,7 +307,8 @@ sub get {
              
     
             foreach my $attribute (keys %{$library}) {
-                my $library_value = $library->{$attribute};
+                my $library_value = (defined $library->{$attribute})?
+                                      $library->{$attribute}: 'unknown';
                 $participants->{$center_name}{$donor_id}{$sample_id}{$alignment}{$aliquot_id}{$library_name}{$attribute}{$library_value} = 1;
             }
             my $files = files($analysis_result, $parse_log, $analysis_id);

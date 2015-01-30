@@ -1,6 +1,8 @@
 package SeqWare::Cluster;
 
-use common::sense;
+use strict;
+use warnings;
+use feature qw(say);
 
 use FindBin qw($Bin);
 use lib "$Bin/../lib";
@@ -20,94 +22,101 @@ use Config::Simple;
 use Data::Dumper;
 
 sub combine_local_data {
-  my ($self, $running_sample_ids, $failed_samples, $completed_samples, $local_cache_file, $sample_info) = @_;
-
-  my $analysis_id_to_donor = parse_donors($sample_info);
-
-  #print Dumper $running_sample_ids;
-  # $samples_status->{$run_status}{$mergedSortedIds}{$created_timestamp}{$sample_id} = $run_status;
-  # read it if it exists and add to structure
-  if (-e $local_cache_file && -s $local_cache_file > 0) {
-    open IN, "<$local_cache_file" or die "Can't open file $local_cache_file for reading";
-    while(<IN>) {
-      chomp;
-      my @a = split /\t/;
-      if ($a[3] eq 'running') {
-        #$running_sample_ids->{$a[0]}{$a[1]}{$a[2]} = $a[3];
-        # never cache the running, always rediscover in case a running box was terminated, want to restart
-      } elsif ($a[3] eq 'completed') {
-        $completed_samples->{$a[0]}{$a[1]}{$a[2]} = $a[3];
-      } elsif ($a[3] eq 'failed') {
-        $failed_samples->{$a[0]}{$a[1]}{$a[2]} = $a[3];
-      } else {
-        # just add to failed if don't know
-        $failed_samples->{$a[0]}{$a[1]}{$a[2]} = $a[3];
-      }
-    }
-    close IN;
-  }
-  # now save these back out, running is always a fresh list of what's really running
-  open OUT, ">$local_cache_file" or die "Can't open file $local_cache_file for output";
-  foreach my $hash ($running_sample_ids, $failed_samples, $completed_samples) {
-    foreach my $mergedSortedIds (keys %{$hash}) {
-
-      my $project_code = "";
-      my $project_donor_id = "";
-      foreach my $id (split /,/, $mergedSortedIds) {
-        if (defined($analysis_id_to_donor->{$id})) {
-          $project_code = $analysis_id_to_donor->{$id}{project_code};
-          $project_donor_id = $analysis_id_to_donor->{$id}{project_donor_id};
+    my ($self, $running_sample_ids, $failed_samples, $completed_samples, $local_cache_file, $sample_info) = @_;
+  
+    my $analysis_id_to_donor = parse_donors($sample_info);
+  
+    #print Dumper $running_sample_ids;
+    # $samples_status->{$run_status}{$mergedSortedIds}{$created_timestamp}{$sample_id} = $run_status;
+    # read it if it exists and add to structure
+    if (-e $local_cache_file && -s $local_cache_file > 0) {
+        open my $in, '<', $local_cache_file;
+        while(<$in>) {
+            chomp;
+            my @a = split /\t/;
+            if ($a[3] eq 'running') {
+                #$running_sample_ids->{$a[0]}{$a[1]}{$a[2]} = $a[3];
+                # never cache the running, always rediscover in case a running box was terminated, want to restart
+            }
+            elsif ($a[3] eq 'completed') {
+                $completed_samples->{$a[0]}{$a[1]}{$a[2]} = $a[3];
+            }
+            elsif ($a[3] eq 'failed') {
+                $failed_samples->{$a[0]}{$a[1]}{$a[2]} = $a[3];
+            } 
+            else {
+                # just add to failed if don't know
+                $failed_samples->{$a[0]}{$a[1]}{$a[2]} = $a[3];
+            }
         }
-      }
-
-      foreach my $created_timestamp (keys %{$hash->{$mergedSortedIds}}) {
-        foreach my $sample_id (keys %{$hash->{$mergedSortedIds}{$created_timestamp}}) {
-          print OUT "$mergedSortedIds\t$created_timestamp\t$sample_id\t".$hash->{$mergedSortedIds}{$created_timestamp}{$sample_id}."\t$project_code\t$project_donor_id\n";
-        }
-      }
+        close $in;
     }
-  }
-  close OUT;
-  # return the structures
-  return($running_sample_ids, $failed_samples, $completed_samples);
+    # now save these back out, running is always a fresh list of what's really running
+    open my $out, '>', $local_cache_file;
+    foreach my $hash ($running_sample_ids, $failed_samples, $completed_samples) {
+        foreach my $mergedSortedIds (keys %{$hash}) {
+            my $project_code = "";
+            my $project_donor_id = "";
+            foreach my $id (split /,/, $mergedSortedIds) {
+                if (defined($analysis_id_to_donor->{$id})) {
+                    $project_code = $analysis_id_to_donor->{$id}{project_code};
+                    $project_donor_id = $analysis_id_to_donor->{$id}{project_donor_id};
+                }
+            }
+  
+            foreach my $created_timestamp (keys %{$hash->{$mergedSortedIds}}) {
+                foreach my $sample_id (keys %{$hash->{$mergedSortedIds}{$created_timestamp}}) {
+                    say $out "$mergedSortedIds\t$created_timestamp\t$sample_id\t".$hash->{$mergedSortedIds}{$created_timestamp}{$sample_id}."\t$project_code\t$project_donor_id";
+                }
+            }
+        }
+    }
+    close $out;
+    # return the structures
+    return($running_sample_ids, $failed_samples, $completed_samples);
 }
 
 sub parse_donors {
-  my ($sample_info) = @_;
-  my $d = {};
-  foreach my $center (keys %{$sample_info}) {
-    foreach my $donor_id (keys %{$sample_info->{$center}}) {
-      my $project_code = $sample_info->{$center}{$donor_id}{dcc_project_code};
-      my $project_donor_id = $donor_id;
-      $project_donor_id =~ /($project_code-)(\S+)/;
-      $project_donor_id = $2;
-      foreach my $specimen (keys %{$sample_info->{$center}{$donor_id}}) {
-        next if ($specimen =~ /variant_workflow/ || $specimen =~ /dcc_project_code/ || $specimen =~ /submitter_donor_id/);
-        foreach my $workflow_id (keys %{$sample_info->{$center}{$donor_id}{$specimen}}) {
-          foreach my $uuid (keys %{$sample_info->{$center}{$donor_id}{$specimen}{$workflow_id}}) {
-            foreach my $library (keys %{$sample_info->{$center}{$donor_id}{$specimen}{$workflow_id}{$uuid}}) {
-              foreach my $analysis_id (keys %{$sample_info->{$center}{$donor_id}{$specimen}{$workflow_id}{$uuid}{$library}{analysis_ids}}) {
-                $d->{$analysis_id}{project_donor_id} = $project_donor_id;
-                $d->{$analysis_id}{project_code} = $project_code;
-              }
+    my ($sample_info) = @_;
+
+    my $donors = {};
+    foreach my $center (keys %{$sample_info}) {
+        foreach my $donor_id (keys %{$sample_info->{$center}}) {
+            my $project_code = $sample_info->{$center}{$donor_id}{dcc_project_code};
+            my $project_donor_id = $donor_id;
+            $project_donor_id =~ /($project_code-)(\S+)/;
+            $project_donor_id = $2;
+            foreach my $specimen (keys %{$sample_info->{$center}{$donor_id}}) {
+                next if ($specimen =~ /variant_workflow|dcc_project_code|submitter_donor_id/);
+                foreach my $workflow_id (keys %{$sample_info->{$center}{$donor_id}{$specimen}}) {
+                    foreach my $uuid (keys %{$sample_info->{$center}{$donor_id}{$specimen}{$workflow_id}}) {
+                        foreach my $library (keys %{$sample_info->{$center}{$donor_id}{$specimen}{$workflow_id}{$uuid}}) {
+                            foreach my $analysis_id (keys %{$sample_info->{$center}{$donor_id}{$specimen}{$workflow_id}{$uuid}{$library}{analysis_ids}}) {
+                                $donors->{$analysis_id}{project_donor_id} = $project_donor_id;
+                                $donors->{$analysis_id}{project_code} = $project_code;
+                            }
+                        }
+                    }
+                }
             }
-          }
         }
-      }
     }
-  }
-  return($d);
+
+    return $donors;
 }
 
 sub cluster_seqware_information {
     my ($class, $report_file, $clusters_json, $ignore_failed, $run_workflow_version, $failure_reports_dir) = @_;
 
-    my ($clusters, $cluster_file_path);
+    my %clusters;
+    my %all_clusters;
+    my $cluster_file_path;
     foreach my $cluster_json (@{$clusters_json}) {
         $cluster_file_path = "$Bin/../$cluster_json";
         die "file does not exist $cluster_file_path" unless (-f $cluster_file_path);
         my $cluster = decode_json( read_file($cluster_file_path));
-         $clusters = {%$clusters, %$cluster};
+        %all_clusters = %clusters;
+        %clusters = (%all_clusters, %$cluster);
     }
 
     my (%cluster_information,
@@ -116,10 +125,10 @@ sub cluster_seqware_information {
        %completed_samples,
        $cluster_info,
        $samples_status_ids);
-       my $cluster_num = 0;
+    my $cluster_num = 0;
 
-    foreach my $cluster_name (keys %{$clusters}) {
-        my $cluster_metadata = $clusters->{$cluster_name};
+    foreach my $cluster_name (keys %clusters) {
+        my $cluster_metadata = $clusters{$cluster_name};
         $cluster_num++;
         #print "CLUSTER METADATA: $cluster_num NAME: $cluster_name\n";
         #print Dumper($cluster_metadata);
@@ -129,23 +138,24 @@ sub cluster_seqware_information {
                                    $cluster_name,
                                    $cluster_metadata,
                                    $run_workflow_version,
-                                   $failure_reports_dir);
+                                   $failure_reports_dir,
+                                   $ignore_failed);
 
         foreach my $cluster (keys %{$cluster_info}) {
-           $cluster_information{$cluster} = $cluster_info->{$cluster};
+            $cluster_information{$cluster} = $cluster_info->{$cluster};
         }
 
         foreach my $sample_id (keys %{$samples_status_ids->{running}}) {
-          #$running_samples{$sample_id} = 1;
-          $running_samples{$sample_id} = $samples_status_ids->{running}{$sample_id};
+            #$running_samples{$sample_id} = 1;
+            $running_samples{$sample_id} = $samples_status_ids->{running}{$sample_id};
         }
 
         foreach my $sample_id (keys %{$samples_status_ids->{failed}}) {
-             $failed_samples{$sample_id} = $samples_status_ids->{failed}{$sample_id};
+            $failed_samples{$sample_id} = $samples_status_ids->{failed}{$sample_id};
         }
 
         foreach my $sample_id (keys %{$samples_status_ids->{completed}}) {
-             $completed_samples{$sample_id} = $samples_status_ids->{completed}->{$sample_id};
+            $completed_samples{$sample_id} = $samples_status_ids->{completed}{$sample_id};
         }
 
     }
@@ -154,7 +164,7 @@ sub cluster_seqware_information {
 }
 
 sub seqware_information {
-    my ($report_file, $cluster_name, $cluster_metadata, $run_workflow_version, $failure_reports_dir) = @_;
+    my ($report_file, $cluster_name, $cluster_metadata, $run_workflow_version, $failure_reports_dir, $ignore_failed) = @_;
 
     my $user = $cluster_metadata->{username};
     my $password = $cluster_metadata->{password};
@@ -193,6 +203,10 @@ sub seqware_information {
                    $workflow_accession, $samples_status, $run_workflow_version);
     }
     my $running = scalar(keys %{$samples_status->{running}});
+
+    my $failed = scalar(keys %{$samples_status->{failed}});
+    $running += $failed unless ($ignore_failed);
+
     my %cluster_info;
     if ($running < $max_running ) {
         say $report_file  "\tTHERE ARE $running RUNNING WORKFLOWS WHICH IS LESS THAN MAX OF $max_running, ADDING TO LIST OF AVAILABLE CLUSTERS";
@@ -250,16 +264,14 @@ sub find_available_clusters {
 
         say $report_file "\t\tWORKFLOW: ".$workflow_accession." STATUS: ".$run_status;
 
-        my ($sample_id, $created_timestamp, $mergedSortedIds);
+        my ($donor_id, $created_timestamp, $tumour_aliquote_ids);
 
-        if ( ($sample_id, $created_timestamp, $mergedSortedIds) = get_sample_info($report_file, $seqware_run))    {
+        if ( ($donor_id, $created_timestamp, $tumour_aliquote_ids) = get_sample_info($report_file, $seqware_run))    {
 
             my $running_status = { 'pending' => 1,   'running' => 1,
                                    'scheduled' => 1, 'submitted' => 1 };
             $running_status = 'running' if ($running_status->{$run_status});
-            $samples_status->{$run_status}{$mergedSortedIds}{$created_timestamp}{$sample_id} = $run_status;
-            #$samples_status->{$run_status}{$mergedSortedIds}{$created_timestamp} = 1;
-            #$samples_status->{$run_status}{$sample_id}{$created_timestamp} = 1;
+            $samples_status->{$run_status}{$tumour_aliquote_ids}{$created_timestamp}{$donor_id} = $run_status;
         }
      }
 
@@ -278,27 +290,19 @@ sub  get_sample_info {
          my ($parameter, $value) = split '=', $line, 2;
          $parameters{$parameter} = $value;
     }
+    
+    my $donor_id = $parameters{donor_id};
+    my $tumour_aliquot_ids = $parameters{tumourAliquotIds};
+    my $tumour_bams = $parameters{tumourBams};
+    my $control_bam = $parameters{controlBam};
+    $donor_id //= 'unknown';
+    say $report_file "\t\t\tDonor ID: $donor_id";
+    say $report_file "\t\t\tCreated Timestamp: $created_timestamp";
+    say $report_file "\t\t\tTumour Aliquote Ids: $tumour_aliquot_ids";
+    say $report_file "\t\t\tTumour Bams: $tumour_bams";
+    say $report_file "\t\t\tTumour Control: $control_bam";
 
-    my $sample_id = $parameters{sample_id};
-
-
-    my @urls = split /,/, $parameters{gnos_input_metadata_urls};
-    say $report_file "\t\t\tSAMPLE: $sample_id";
-    my $sorted_urls = join(',', sort @urls);
-    say $report_file "\t\t\tINPUTS: $sorted_urls";
-
-    say $report_file "\t\t\tCWD: ".$parameters{currentWorkingDir};
-    say $report_file "\t\t\tWORKFLOW ACCESSION: ".$parameters{swAccession}."\n";
-
-    $sample_id //= $sorted_urls;
-
-    # for the variant calling workflow
-    my @mergedIds = (split (/,/, $parameters{tumourAnalysisIds}), split (/,/, $parameters{controlAnalysisId}));
-    my @sortedMergedIds = sort @mergedIds;
-    say $report_file "\t\t\tMERGED_SORTED_IDS: ".join(",", @sortedMergedIds)."\n";
-
-    return ($sample_id, $created_timestamp, join(",", @sortedMergedIds));
+    return ($donor_id, $created_timestamp, $tumour_aliquot_ids);
 }
-
 
 1;

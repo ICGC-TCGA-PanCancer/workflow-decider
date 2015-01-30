@@ -32,7 +32,7 @@ sub schedule_samples {
     my $running_samples         = $args{'running_sample_ids'};
     my $failed_samples          = $args{'failed_sample_ids'};
     my $completed_samples       = $args{'completed_sample_ids'};
-    my $skip_scheduling         = $args{'workflow-skip-scheduling'};
+    my $skip_scheduling         = $args{'skip-scheduling'};
     my $specific_sample         = $args{'schedule-sample'};
     my $specific_donor          = $args{'schedule-center'};
     my $specific_center         = $args{'schedule-donor'};
@@ -46,7 +46,7 @@ sub schedule_samples {
     my $skip_gtupload           = $args{'workflow-skip-gtdownload'};
     my $upload_results          = $args{'workflow-upload-results'};
     my $input_prefix            = $args{'workflow-input-prefix'};
-    my $gnos_url                = $args{'gnos-url'};
+    my $gnos_url                = $args{'gnos-download-url'};
     my $gnos_upload_url         = $args{'gnos-upload-url'};
     my $ignore_failed           = $args{'schedule-ignore-failed'};
     my $working_dir             = $args{'working-dir'};
@@ -57,7 +57,6 @@ sub schedule_samples {
     my $pem_file                = $args{'pem-file'};
     my $whitelist               = $args{'whitelist'};
     my $blacklist               = $args{'blacklist'};
-
 
     # This is a special case: make a note of the GNOS upload URL is defined and
     # is not the same as the download URL
@@ -77,6 +76,7 @@ sub schedule_samples {
         my @whitelist = grep {s/\s+/-/} @{$whitelist->{donor}} if $whitelist and $whitelist->{donor};
 
         DONOR: foreach my $donor_id (keys %{$sample_information->{$center_name}}) {
+           say $donor_id;
             # Only do specified donor if applicable
             next if defined $specific_donor and $specific_donor ne $donor_id;
 

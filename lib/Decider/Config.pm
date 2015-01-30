@@ -37,50 +37,52 @@ sub get {
            '--seqware-setttings'     => 'general.seqware-settings',
            '--report'                => 'general.report',
            '--working-dir'           => 'general.working-dir',
-           '--bwa-worklfow-version'  => 'general.bwa-workflwo-version',  
+           '--bwa-workflow-version'  => 'general.bwa-workflow-version',  
            '--lwp-download-timeout'  => 'general.lwp-download-timeout',
+           '--local-status-cache'    => 'general.local-status-cache',
+           '--failure-reports-dir'   => 'general.failure-reports-dir',
            '--workflow-name'         => 'workflow.workflow-name',
-           '--workflow-version'      => 'workflow.workflow-version'
-           '--tabix-url'             => 'workflow-tabix-url',
+           '--workflow-version'      => 'workflow.workflow-version',
+           '--tabix-url'             => 'workflow.tabix-url',
            '--gnos-download-url'     => 'workflow.gnos-download-url',
            '--gnos-upload-url'       => 'workflow.gnos-upload-url',
-           '--gtdownload-pem-file'   => 'workflow.gtdownlaod-pem-file',
-           '--gtuplaod-pem-file'     => 'workflow.gtupload-pem-file',
-           '--cores-addressable'     => 'workflow.cores-addressable'
+           '--gtdownload-pem-file'   => 'workflow.gtdownload-pem-file',
+           '--gtupload-pem-file'     => 'workflow.gtupload-pem-file',
+           '--cores-addressable'     => 'workflow.cores-addressable',
            '--mem-host-mb-abailable' => 'workflow.mem-host-mb-available'
     );
 
     my $ini_key;
-    foreach my $flag (keys %strings_to_ini_keys) {
+    foreach my $flag (keys %string_flags_to_ini_keys) {
 
-        $ini_key = $flags_to_ini_keys{$flag};
+        $ini_key = $string_flags_to_ini_keys{$flag};
         $ARGV{$flag} //= $decider_config{$ini_key};
 
-        die "Need to either specify flag: $flag or spefiy ini key $ini_key"
-                                                               unless $ARGV{'flag'};
+        die "Need to either specify flag: $flag or spefiy ini key: $ini_key"
+                                                               unless $ARGV{$flag};
 
     }
 
     # Optional
 
     my %boolean_flags_to_ini_keys = (
-            '--use-cached-analysis     ' => 'general.use-cached-analysis',
-            '--use-cached-xml'           => 'general.use-cached-xml',
-            '--schedule-ignore-failed'   => 'scheduling.ignore-failed',
-            '--schedule-force-run'       => 'schedule.force-run'
-            '--workflow-skip-scheduling' => 'workflow.skip-scheudling',
-            '--workflow-upload-results'  => 'workflow.upload-results',
-            '--workflow-skip-gtdownload' => 'workflow-skip-gtdownload',
-            '--workflow-skip-gtupload'   => 'workflow-skipt-gtupload'
+            '--use-cached-analysis'        => 'general.use-cached-analysis',
+            '--use-cached-xml'             => 'general.use-cached-xml',
+            '--schedule-ignore-failed'     => 'scheduling.ignore-failed',
+            '--schedule-force-run'         => 'scheduling.force-run',
+            '--skip-scheduling'            => 'scheduling.skip-scheduling',
+            '--workflow-upload-results'    => 'workflow.upload-results',
+            '--workflow-skip-gtdownload'   => 'workflow-skip-gtdownload',
+            '--workflow-skip-gtupload'     => 'workflow-skipt-gtupload'
     );
     
     my $ini_key;
     foreach my $flag (keys %boolean_flags_to_ini_keys) {
-        $ini_key = $boolean_flags_to_ini_keys;
-        $ARGV{$flag} if ($decider_config{$ini_key} eq 'true')? 1: 0;
+        $ini_key = $boolean_flags_to_ini_keys{$flag};
+        $ARGV{$flag} //= ($decider_config{$ini_key} eq 'true')? 1: 0;
     }
 
-    my $optional_flags_to_ini_keys = (
+    my %optional_flags_to_ini_keys = (
            '--schedule-whitelist-sample' => 'scheduling.whitelist-sample',
            '--schedule-blacklist-sample' => 'scheduling.blacklist-sample',
            '--schedule-whitelist-donor'  => 'scheduling.whitelist-donor',
@@ -92,8 +94,8 @@ sub get {
     );
 
     my $ini_key;
-    foreach my $flag (keys %strings_to_ini_keys) {
-        $ini_key = $flags_to_ini_keys{$flag};
+    foreach my $flag (keys %optional_flags_to_ini_keys) {
+        $ini_key = $optional_flags_to_ini_keys{$flag};
         $ARGV{$flag} //= $decider_config{$ini_key};
     }
 

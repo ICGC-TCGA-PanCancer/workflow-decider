@@ -187,9 +187,9 @@ Schedule workflows even if they were previously completed
 
 The number of cores that can be used for the analysis
 
-=item --workflow-skip-scheduling
+=item --skip-scheduling
 
-Indicates no workflow should be scheduled, just summary of what would have been run.
+Indicates workflows should not be scheduled, just summary of what would have been run.
 
 =item --workflow-upload-results
 
