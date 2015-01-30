@@ -42,11 +42,12 @@ sub schedule_samples {
     my $output_prefix           = $args{'workflow-output-prefix'};
     my $force_run               = $args{'schedule-force-run'};
     my $threads                 = $args{'cores-addressable'};
+    my $mem_host_mb_available   = $args{'mem-host-mb-available'};
     my $skip_gtdownload         = $args{'workflow-skip-gtdownload'};
     my $skip_gtupload           = $args{'workflow-skip-gtdownload'};
     my $upload_results          = $args{'workflow-upload-results'};
     my $input_prefix            = $args{'workflow-input-prefix'};
-    my $gnos_url                = $args{'gnos-download-url'};
+    my $gnos_download_url       = $args{'gnos-download-url'};
     my $gnos_upload_url         = $args{'gnos-upload-url'};
     my $ignore_failed           = $args{'schedule-ignore-failed'};
     my $working_dir             = $args{'working-dir'};
@@ -54,16 +55,10 @@ sub schedule_samples {
     my $workflow_name           = $args{'workflow-name'};
     my $bwa_workflow_version    = $args{'bwa-workflow-version'};
     my $tabix_url               = $args{'tabix-url'};
-    my $pem_file                = $args{'pem-file'};
+    my $download_pem_file       = $args{'gtdownload-pem-file'};
+    my $upload_pem_file         = $args{'gtupload-pem-file'};
     my $whitelist               = $args{'whitelist'};
     my $blacklist               = $args{'blacklist'};
-
-    # This is a special case: make a note of the GNOS upload URL is defined and
-    # is not the same as the download URL
-    if ($gnos_upload_url && $gnos_upload_url ne $gnos_url) {
-        #say STDERR "DEBUG: detected different upload URL";
-        $self->{gnos_upload_url} = $gnos_upload_url;
-    }
 
     say $report_file "SAMPLE SCHEDULING INFORMATION\n";
 
@@ -104,13 +99,15 @@ sub schedule_samples {
             foreach my $key (keys %{$running_samples}) {
                 $unavail_samples->{$key} = 1;
             }
-            foreach my $key (keys %{$failed_samples}) {
-                $unavail_samples->{$key} = 1;
+            unless ($ignore_failed) {
+                foreach my $key (keys %{$failed_samples}) {
+                    $unavail_samples->{$key} = 1;
+                }
             }
             foreach my $key (keys %{$completed_samples}) {
                 $unavail_samples->{$key} = 1;
             }
-  
+
             # Skip non-whitelisted donors if applicable
             my $on_whitelist = grep {/^$donor_id/} @whitelist;
   
@@ -132,11 +129,13 @@ sub schedule_samples {
                                       $output_prefix,
                                       $force_run,
                                       $threads,
+                                      $mem_host_mb_available,                          
                                       $skip_gtdownload,
                                       $skip_gtupload,
                                       $upload_results,
                                       $input_prefix,
-                                      $gnos_url,
+                                      $gnos_download_url,
+                                      $gnos_upload_url,
                                       $ignore_failed,
                                       $working_dir,
                                       $center_name,
@@ -145,7 +144,8 @@ sub schedule_samples {
                                       $whitelist,
                                       $blacklist,
                                       $tabix_url,
-                                      $pem_file);
+                                      $download_pem_file,
+                                      $upload_pem_file);
             }
             elsif (@whitelist > 0) {
                 say STDERR "Donor $donor_id is not on the whitelist";
@@ -162,7 +162,8 @@ sub schedule_workflow {
          $report_file,
          $cluster_information,
          $working_dir,
-         $gnos_url,
+         $gnos_download_url,
+         $gnos_upload_url,
          $skip_gtdownload,
          $skip_gtupload,
          $skip_scheduling,
@@ -171,11 +172,13 @@ sub schedule_workflow {
          $output_dir,
          $force_run,
          $threads,
+         $mem_host_mb_available,
          $center_name,
          $workflow_version,
          $bwa_workflow_version,
          $tabix_url,
-         $pem_file
+         $download_pem_file,
+         $upload_pem_file
         ) = @_;
 
     my $cluster = (keys %{$cluster_information})[0];
@@ -208,8 +211,10 @@ sub schedule_workflow {
         $self->create_workflow_ini(
             $donor,
             $workflow_version,
-            $gnos_url,
+            $gnos_download_url,
+            $gnos_upload_url,
             $threads,
+            $mem_host_mb_available,
             $skip_gtdownload,
             $skip_gtupload,
             $upload_results,
@@ -218,8 +223,8 @@ sub schedule_workflow {
             $working_dir,
             $center_name,
             $tabix_url,
-            $pem_file,
-            $self->{gnos_upload_url}
+            $download_pem_file,
+            $upload_pem_file,
             );
     }
 
@@ -313,11 +318,13 @@ sub schedule_donor {
          $output_prefix,
          $force_run,
          $threads,
+         $mem_host_mb_available,
          $skip_gtdownload,
          $skip_gtupload,
          $upload_results,
          $input_prefix,
-         $gnos_url,
+         $gnos_download_url,
+         $gnos_upload_url,
          $ignore_failed,
          $working_dir,
          $center_name,
@@ -326,7 +333,8 @@ sub schedule_donor {
          $whitelist,
          $blacklist,
          $tabix_url,
-         $pem_file
+         $download_pem_file,
+         $upload_pem_file
         ) = @_;
 
     say "GOING TO SCHEDULE";
@@ -363,7 +371,7 @@ sub schedule_donor {
 
             my $alignments = $donor_information->{$donor_id};
 
-            push @{$donor->{gnos_url}}, $gnos_url;
+            push @{$donor->{gnos_download_url}}, $gnos_download_url;
 
             my %said;
 
@@ -467,8 +475,8 @@ sub schedule_donor {
                             $donor->{local_bams_string} = join ',', sort @local_bams;
 
                             foreach my $analysis_id (sort @analysis_ids) {
-                                $donor->{analysis_url}->{"$gnos_url/cghub/metadata/analysisFull/$analysis_id"} = 1;
-                                $donor->{download_url}->{"$gnos_url/cghub/data/analysis/download/$analysis_id"} = 1;
+                                $donor->{analysis_url}->{"$gnos_download_url/cghub/metadata/analysisFull/$analysis_id"} = 1;
+                                $donor->{download_url}->{"$gnos_download_url/cghub/data/analysis/download/$analysis_id"} = 1;
                             }
 
                             push @{$donor->{donor_id}},$donor_id;
@@ -479,7 +487,7 @@ sub schedule_donor {
         }
     }
 
-    $donor->{gnos_url} = join(',',@{$donor->{gnos_url}});
+    $donor->{gnos_download_url} = join(',',@{$donor->{gnos_download_url}});
 
     my @download_urls = sort keys %{$donor->{download_url}};
     $donor->{gnos_input_file_urls} = join(',',@download_urls);
@@ -575,7 +583,8 @@ sub schedule_donor {
                               $report_file,
                               $cluster_information,
                               $working_dir,
-                              $gnos_url,
+                              $gnos_download_url,
+                              $gnos_upload_url,
                               $skip_gtdownload,
                               $skip_gtupload,
                               $skip_scheduling,
@@ -584,11 +593,13 @@ sub schedule_donor {
                               $output_dir,
                               $force_run,
                               $threads,
+                              $mem_host_mb_available,
                               $center_name,
                               $workflow_version,
                               $bwa_workflow_version,
                               $tabix_url,
-                              $pem_file
+                              $download_pem_file,
+                              $upload_pem_file
         )
         if $self->should_be_scheduled(
             $report_file,
@@ -610,15 +621,17 @@ sub should_be_scheduled {
     if ($prev_failed_running_complete) {
       say $report_file "\t\t\tCONCLUSION: NOT SCHEDULING FOR VCF, PREVIOUSLY FAILED, RUNNING, OR COMPLETED";
       #print "\t\t\tCONCLUSION: NOT SCHEDULING FOR VCF, PREVIOUSLY FAILED, RUNNING, OR COMPLETED\n";
-      return(0);
-    } elsif ($skip_scheduling) {
+      return 0;
+    }
+    elsif ($skip_scheduling) {
       say $report_file "\t\tCONCLUSION: SKIPPING SCHEDULING SINCE SKIP-SCHEDULING SELECTED";
       #print "\t\tCONCLUSION: SKIPPING SCHEDULING SINCE SKIP-SCHEDULING SELECTED\n";
-      return(0);
-    } else {
+      return 0;
+    }
+    else {
       say $report_file "\t\tCONCLUSION: SCHEDULING FOR VCF";
       #print "\t\tCONCLUSION: SCHEDULING FOR VCF\n";
-      return(1);
+      return 1;
     }
 }
 

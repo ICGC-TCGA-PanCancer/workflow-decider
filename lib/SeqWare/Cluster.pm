@@ -84,8 +84,13 @@ sub parse_donors {
         foreach my $donor_id (keys %{$sample_info->{$center}}) {
             my $project_code = $sample_info->{$center}{$donor_id}{dcc_project_code};
             my $project_donor_id = $donor_id;
-            $project_donor_id =~ /($project_code-)(\S+)/;
-            $project_donor_id = $2;
+            if (defined $project_code) {
+                $project_donor_id =~ /($project_code-)(\S+)/;
+                $project_donor_id = $2;
+            } 
+            else {
+                $project_donor_id = 'unknown';
+            }
             foreach my $specimen (keys %{$sample_info->{$center}{$donor_id}}) {
                 next if ($specimen =~ /variant_workflow|dcc_project_code|submitter_donor_id/);
                 foreach my $workflow_id (keys %{$sample_info->{$center}{$donor_id}{$specimen}}) {

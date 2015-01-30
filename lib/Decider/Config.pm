@@ -49,7 +49,7 @@ sub get {
            '--gtdownload-pem-file'   => 'workflow.gtdownload-pem-file',
            '--gtupload-pem-file'     => 'workflow.gtupload-pem-file',
            '--cores-addressable'     => 'workflow.cores-addressable',
-           '--mem-host-mb-abailable' => 'workflow.mem-host-mb-available'
+           '--mem-host-mb-available' => 'workflow.mem-host-mb-available'
     );
 
     my $ini_key;

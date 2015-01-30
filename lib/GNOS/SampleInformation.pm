@@ -226,9 +226,10 @@ sub get {
 	# to record that it has been run.
 	if ($vc_workflow_name && $vc_workflow_version) {
 	    # just record the newer one if an earlier version exists
-	    if ( my $version = $variant_workflow->{$donor_id}->{$vc_workflow_name} ) {
-		my @version1 = split '.', $version;
-		my @version2 = split ',', $vc_workflow_version;
+	    if ( my $version = $variant_workflow->{$donor_id}{$vc_workflow_name} ) {
+		my @version1 = split /\./, $version;
+		my @version2 = split /\./, $vc_workflow_version;
+
 		next if $version1[0] >= $version2[0];
 		next if $version1[1] >= $version2[1];
 		next if $version1[2] >= $version2[2];
