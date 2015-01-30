@@ -101,7 +101,7 @@ sub get {
         my $attempts = 0;
 
         while ($status == 0 and $attempts < 10) {
-            $status = $self->download_analysis($analysis_full_url, $analysis_xml_path, $use_cached_xml);
+            $status = $self->download_analysis($analysis_full_url, $analysis_xml_path, $use_cached_analysis);
             $attempts++;
         }
 
