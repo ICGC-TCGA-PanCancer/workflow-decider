@@ -91,7 +91,7 @@ A place for temporary ini and settings files
 
 =item --use-cached-analysis
 
-Use the previously downloaded list of files from GNOS that are marked in the live state (only useful for testing).
+A flag indicating that previously download analysis xml files for each analysis event should not be downloaded again
 
 =item --seqware-settings[=][ ]<seqware_settings>
 
@@ -103,7 +103,7 @@ The report file name that the results will be placed in by the decider
 
 =item --use-cached-xml
 
-A flag indicating that previously download xml files for each analysis file should not be downloaded again
+Use the previously downloaded list of files from GNOS that are marked in the live state (only useful for testing).
 
 =item --tabix-url[=][ ]<tabix_url>
 
