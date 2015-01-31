@@ -115,7 +115,7 @@ Path to pem file on worker node that is used for dowloading from GNOS
 
 =back
 
-=item --gt-download-pem-file[=][ ]<path_to_upload_pem_file>
+=item --gt-upload-pem-file[=][ ]<path_to_upload_pem_file>
 
 Path to pem file on worker node that is used for uploading to GNOS
 
