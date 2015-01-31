@@ -109,13 +109,13 @@ A flag indicating that previously download xml files for each analysis file shou
 
 The URL of the tabix server
 
-=item --gt-download-pem-file[=][ ]<path_to_download_pem_file>
+=item --gtdownload-pem-file[=][ ]<path_to_download_pem_file>
 
 Path to pem file on worker node that is used for dowloading from GNOS
 
 =back
 
-=item --gt-upload-pem-file[=][ ]<path_to_upload_pem_file>
+=item --gtupload-pem-file[=][ ]<path_to_upload_pem_file>
 
 Path to pem file on worker node that is used for uploading to GNOS
 
