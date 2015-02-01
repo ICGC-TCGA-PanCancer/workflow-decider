@@ -314,7 +314,7 @@ sub  get_sample_info {
     say $report_file "\t\t\tCreated Timestamp: $created_timestamp";
     my $sorted_urls = join(',', sort @urls);		+    say $report_file "\t\t\tDonor ID: $donor_id";
     say $report_file "\t\t\tInput URLs: $sorted_urls";
-    say $report_file "\t\t\tCwd: ".$parameters{currentWorkingDir};		+    return ($donor_id, $created_timestamp, $tumour_aliquot_ids);
+    say $report_file "\t\t\tCwd: ".$parameters{currentWorkingDir};
     say $report_file "\t\t\tWorkflow Accession: ".$parameters{swAccession}."\n";
     say $report_file "\t\t\tTumour Aliquote Ids: $tumour_aliquot_ids";
     say $report_file "\t\t\tTumour Bams: $tumour_bams";
