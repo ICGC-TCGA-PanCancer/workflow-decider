@@ -92,7 +92,7 @@ sub schedule_samples {
                 if (my $variant_workflow_version = $variant_workflow->{$workflow_name} ) {
                     my @have_version = split '.', $variant_workflow_version;
                     my @need_version = split '.', $workflow_version;
-                    # FIXME: not sure this is going to work when we have > workflow versions... seems like it will cause everything to re-run when 1.1.0 comes out! Not sure we want that... 
+                    # FIXME: not sure this is going to work when we have > workflow versions... seems like it will cause everything to re-run when 1.1.0 comes out! Not sure we want that...
                     my $skip_donor = $have_version[0] >= $need_version[0] && $have_version[1] >= $need_version[1];
                     if ($skip_donor) {
                         say $report_file "Skipping donor $donor_id because $workflow_name has already been run";
@@ -119,7 +119,8 @@ sub schedule_samples {
             my $on_whitelist = grep {/^$donor_id/} @whitelist;
 
             if (scalar(@whitelist) == 0 or $on_whitelist) {
-                say $report_file "Donor $donor_id is on the whitelist" if $on_whitelist and scalar(@whitelist) > 0;
+
+                say $report_file "\nDONOR $donor_id is on the whitelist" if $on_whitelist and scalar(@whitelist) > 0;
 
                 my $donor_information = $sample_information->{$center_name}{$donor_id};
 
@@ -345,10 +346,14 @@ sub schedule_donor {
          $upload_pem_file
         ) = @_;
 
-    say "GOING TO SCHEDULE";
+    say $report_file "GOING TO SCHEDULE";
     say $report_file "\nDONOR/PARTICIPANT: $donor_id\n";
 
     my @sample_ids = keys %{$donor_information};
+
+    print "DOES THIS CONTAIN VAR CALLING!?!?\n";
+    print Dumper($donor_information);
+
     my @samples;
 
     # We need to track the tissue type
@@ -573,7 +578,7 @@ sub schedule_donor {
     my $kept = (keys %tumor) + (keys %normal);
     say $report_file "\t\tALIGNED BAMS RETAINED FOR VARIANT CALLING: $kept\n";
 
-    say "Donor $donor_id ready for Variant calling";
+    say $report_file "Donor $donor_id ready for Variant calling";
 
     $donor->{donor_id} = $donor_id;
     for my $analysis (keys %{$donor->{analysis_ids}}) {
@@ -583,8 +588,7 @@ sub schedule_donor {
     $donor->{normal} = \%normal;
     $donor->{tumor}  = \%tumor;
 
-    say "\nABOUT TO SCHEDULE $donor_id";
-    print "\nABOUT TO SCHEDULE $donor_id";
+    say $report_file "\nABOUT TO SCHEDULE $donor_id";
 
     $self->schedule_workflow( $donor,
                               $seqware_settings_file,
