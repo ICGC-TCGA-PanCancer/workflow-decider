@@ -75,7 +75,14 @@ sub schedule_samples {
             next if defined $specific_donor and $specific_donor ne $donor_id;
 
             # Skip any blacklisted donors
-            next if @blacklist > 0 and grep {/^$donor_id$/} @blacklist;
+            if (@blacklist > 0 and grep {/^$donor_id$/} @blacklist) {
+              say $report_file "SKIPPING DONOR $donor_id SINCE IT IS ON THE BLACKLIST!";
+              next DONOR;
+            }
+            if (@whitelist > 0 and !grep {/^$donor_id$/} @whitelist) {
+              say $report_file "SKIPPING DONOR $donor_id SINCE IT IS NOT ON THE WHITELIST!";
+              next DONOR;
+            }
 
             # Skip any donors who already have the applicable major version of a
             # variant-calling workflow run
@@ -85,9 +92,10 @@ sub schedule_samples {
                 if (my $variant_workflow_version = $variant_workflow->{$workflow_name} ) {
                     my @have_version = split '.', $variant_workflow_version;
                     my @need_version = split '.', $workflow_version;
-                    my $skip_donor = $have_version[0] == $need_version[0] && $have_version[1] == $need_version[1];
+                    # FIXME: not sure this is going to work when we have > workflow versions... seems like it will cause everything to re-run when 1.1.0 comes out! Not sure we want that... 
+                    my $skip_donor = $have_version[0] >= $need_version[0] && $have_version[1] >= $need_version[1];
                     if ($skip_donor) {
-                        say STDERR "Skipping donor $donor_id because $workflow_name has already been run";
+                        say $report_file "Skipping donor $donor_id because $workflow_name has already been run";
                         next DONOR;
                         }
                 }
@@ -111,7 +119,7 @@ sub schedule_samples {
             my $on_whitelist = grep {/^$donor_id/} @whitelist;
 
             if (scalar(@whitelist) == 0 or $on_whitelist) {
-                say STDERR "Donor $donor_id is on the whitelist" if $on_whitelist;
+                say $report_file "Donor $donor_id is on the whitelist" if $on_whitelist and scalar(@whitelist) > 0;
 
                 my $donor_information = $sample_information->{$center_name}{$donor_id};
 
@@ -147,7 +155,8 @@ sub schedule_samples {
                                       $upload_pem_file);
             }
             elsif (@whitelist > 0) {
-                say STDERR "Donor $donor_id is not on the whitelist";
+                # FIXME: can remove this since I added the check earlier in the loop
+                say $report_file "Donor $donor_id is not on the whitelist";
             }
         }
     }
