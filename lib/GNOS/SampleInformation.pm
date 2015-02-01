@@ -106,14 +106,14 @@ sub get {
         }
 
         if (not -e $analysis_xml_path or not eval {$xs->XMLin($analysis_xml_path); } ) {
-           say $parse_log "SKIPPING: $analysis_id - no xml file available: $analysis_xml_path";
+           say $parse_log "DIEING: $analysis_id - no xml file available: $analysis_xml_path";
            die;
         }
 
         my $analysis_data = $xs->XMLin($analysis_xml_path);
 
         if (ref($analysis_data) ne 'HASH'){
-            say "XML can not be converted to a hash for $analysis_id";
+            say "DIEING: XML can not be converted to a hash for $analysis_id";
             die;
         }
 
@@ -121,7 +121,7 @@ sub get {
 
         my $analysis_result = $analysis{Result};
         if (ref($analysis_result) ne 'HASH') {
-             say $parse_log "XML does not contain Results - not including:$analysis_id";
+             say $parse_log "SKIPPING: XML does not contain Results - not including:$analysis_id";
              next;
         }
 
