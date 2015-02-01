@@ -390,6 +390,8 @@ sub schedule_donor {
 
             foreach my $alignment_id (keys %{$alignments}) {
 
+                if
+
                 # Skip unaligned BAMs, not relevant to VC workflows
                 my $aliquots = $alignments->{$alignment_id};
                 foreach my $aliquot_id (keys %{$aliquots}) {
@@ -419,6 +421,8 @@ sub schedule_donor {
                             $aligns->{$alignment_id} = 1;
                         }
                         else {
+                          print "VAR CALLING? $alignment_id\n";
+                          # I think thi is where the variant calling will be
                         }
 
                         next unless $aligns->{$alignment_id};
