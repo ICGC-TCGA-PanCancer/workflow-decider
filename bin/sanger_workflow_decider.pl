@@ -47,7 +47,6 @@ my ($cluster_information, $running_sample_ids, $failed_samples, $completed_sampl
 
 print Dumper ($whitelist);
 print Dumper ($blacklist);
-die;
 
 
 say 'Reading in GNOS Sample Information';
@@ -58,6 +57,10 @@ if ($ARGV{'--filter-downloads-by-whitelist'}) {
 if ($ARGV{'--filter-downloads-by-blacklist'}) {
     $gnos_info->filter_by_blacklist(1);
 }
+
+print Dumper ($gnos_info);
+die;
+
 
 my $sample_information = $gnos_info->get( $ARGV{'--working-dir'},
 					  $ARGV{'--gnos-download-url'},
