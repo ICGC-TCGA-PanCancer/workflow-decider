@@ -30,7 +30,7 @@ sub combine_local_data {
     print Dumper $failed_samples;
     print Dumper $completed_samples;
     print Dumper $sample_info;
-    die;
+
     # $samples_status->{$run_status}{$mergedSortedIds}{$created_timestamp}{$sample_id} = $run_status;
     # read it if it exists and add to structure
     if (-e $local_cache_file && -s $local_cache_file > 0) {
@@ -77,6 +77,9 @@ sub combine_local_data {
     }
     close $out;
     # return the structures
+
+    die;
+
     return($running_sample_ids, $failed_samples, $completed_samples);
 }
 
