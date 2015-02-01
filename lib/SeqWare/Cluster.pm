@@ -341,7 +341,7 @@ sub  get_sample_info {
     my $sorted_urls = join(',', sort @urls);
     say $report_file "\t\t\tInput URLs: $sorted_urls";
     my $cwd = $parameters{currentWorkingDir};
-    my $cwd //= '';
+    $cwd //= '';
     say $report_file "\t\t\tCwd: $cwd";
     my $swaccession  = $parameters{swAccession};
     $swaccession //= '';
