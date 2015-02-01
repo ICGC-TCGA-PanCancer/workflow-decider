@@ -45,6 +45,11 @@ my ($cluster_information, $running_sample_ids, $failed_samples, $completed_sampl
                                                   $ARGV{'--workflow-version'},
                                                   $ARGV{'--failure-reports-dir'});
 
+print Dumper ($whitelist);
+print Dumper ($blacklist);
+die;
+
+
 say 'Reading in GNOS Sample Information';
 my $gnos_info = GNOS::SampleInformation->new();
 if ($ARGV{'--filter-downloads-by-whitelist'}) {
