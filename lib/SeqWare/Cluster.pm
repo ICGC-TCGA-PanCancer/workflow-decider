@@ -340,8 +340,12 @@ sub  get_sample_info {
     say $report_file "\t\t\tCreated Timestamp: $created_timestamp";
     my $sorted_urls = join(',', sort @urls);
     say $report_file "\t\t\tInput URLs: $sorted_urls";
-    say $report_file "\t\t\tCwd: ".$parameters{currentWorkingDir};
-    say $report_file "\t\t\tWorkflow Accession: ".$parameters{swAccession}."\n";
+    my $cwd = $parameters{currentWorkingDir};
+    my $cwd //= '';
+    say $report_file "\t\t\tCwd: $cwd";
+    my $swaccession  = $parameters{swAccession};
+    $swaccession //= '';
+    say $report_file "\t\t\tWorkflow Accession: $swaccession";
     say $report_file "\t\t\tTumour Aliquote Ids: $tumour_aliquot_ids";
     say $report_file "\t\t\tTumour Bams: $tumour_bams";
     say $report_file "\t\t\tTumour Control: $control_bam";
