@@ -31,6 +31,12 @@ sub combine_local_data {
     print Dumper $completed_samples;
     print Dumper $sample_info;
 
+    # a hash that stores decider run counts since last seen for a previously running sample
+    my $count_since_last_seen = {};
+
+    # used for lost
+    my $lost_samples = {};
+
     # $samples_status->{$run_status}{$mergedSortedIds}{$created_timestamp}{$sample_id} = $run_status;
     # read it if it exists and add to structure
     if (-e $local_cache_file && -s $local_cache_file > 0) {
@@ -39,14 +45,23 @@ sub combine_local_data {
             chomp;
             my @a = split /\t/;
             if ($a[3] eq 'running') {
-                #$running_sample_ids->{$a[0]}{$a[1]}{$a[2]} = $a[3];
-                # never cache the running, always rediscover in case a running box was terminated, want to restart
+              # keeping a count so eventually can declare these "lost" and retry them
+              if (defined($running_sample_ids->{$a[0]}{$a[1]}{$a[2]})) {
+                $count_since_last_seen->{$a[0]}{$a[1]}{$a[2]} = 0;
+              } else {
+                $count_since_last_seen->{$a[0]}{$a[1]}{$a[2]} = $a[6] + 1;
+                # TODO: make this a configurable option
+                if ($count_since_last_seen->{$a[0]}{$a[1]}{$a[2]} > 5) { $lost_samples->{$a[0]}{$a[1]}{$a[2]} = $a[3]; }
+              }
             }
             elsif ($a[3] eq 'completed') {
                 $completed_samples->{$a[0]}{$a[1]}{$a[2]} = $a[3];
             }
             elsif ($a[3] eq 'failed') {
-                $failed_samples->{$a[0]}{$a[1]}{$a[2]} = $a[3];
+              $failed_samples->{$a[0]}{$a[1]}{$a[2]} = $a[3];
+            }
+            elsif ($a[3] eq 'lost') {
+              $lost_samples->{$a[0]}{$a[1]}{$a[2]} = $a[3];
             }
             else {
                 # just add to failed if don't know
@@ -57,7 +72,8 @@ sub combine_local_data {
     }
     # now save these back out, running is always a fresh list of what's really running
     open my $out, '>', $local_cache_file;
-    foreach my $hash ($running_sample_ids, $failed_samples, $completed_samples) {
+    say $out "#MergedSortedAnalysisIds\tCreateTimestamp\tSampleId\tState\tProject\tDonorId\tCountsSinceLastSeen";
+    foreach my $hash ($running_sample_ids, $failed_samples, $completed_samples, $lost_samples) {
         foreach my $mergedSortedIds (keys %{$hash}) {
             my $project_code = "";
             my $project_donor_id = "";
@@ -70,7 +86,9 @@ sub combine_local_data {
 
             foreach my $created_timestamp (keys %{$hash->{$mergedSortedIds}}) {
                 foreach my $sample_id (keys %{$hash->{$mergedSortedIds}{$created_timestamp}}) {
-                    say $out "$mergedSortedIds\t$created_timestamp\t$sample_id\t".$hash->{$mergedSortedIds}{$created_timestamp}{$sample_id}."\t$project_code\t$project_donor_id";
+                    my $state = $hash->{$mergedSortedIds}{$created_timestamp}{$sample_id};
+                    my $count = $count_since_last_seen->{$mergedSortedIds}{$created_timestamp}{$sample_id};
+                    say $out "$mergedSortedIds\t$created_timestamp\t$sample_id\t$state\t$project_code\t$project_donor_id\t$count";
                 }
             }
         }
