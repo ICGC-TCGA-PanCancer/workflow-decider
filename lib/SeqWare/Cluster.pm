@@ -329,11 +329,12 @@ sub  get_sample_info {
     my $sample_id =  $parameters{sample_id};
     my @urls = split /,/, $parameters{gnos_input_metadata_urls};
     $donor_id //= 'unknown';
+    $sample_id //= 'unknown';
 
     say $report_file "\t\t\tDonor ID: $donor_id";
     say $report_file "\t\t\tSample ID: $sample_id";
     say $report_file "\t\t\tCreated Timestamp: $created_timestamp";
-    my $sorted_urls = join(',', sort @urls);		+    say $report_file "\t\t\tDonor ID: $donor_id";
+    my $sorted_urls = join(',', sort @urls);
     say $report_file "\t\t\tInput URLs: $sorted_urls";
     say $report_file "\t\t\tCwd: ".$parameters{currentWorkingDir};
     say $report_file "\t\t\tWorkflow Accession: ".$parameters{swAccession}."\n";
