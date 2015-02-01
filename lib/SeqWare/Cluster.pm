@@ -23,10 +23,14 @@ use Data::Dumper;
 
 sub combine_local_data {
     my ($self, $running_sample_ids, $failed_samples, $completed_samples, $local_cache_file, $sample_info) = @_;
-  
+
     my $analysis_id_to_donor = parse_donors($sample_info);
-  
-    #print Dumper $running_sample_ids;
+
+    print Dumper $running_sample_ids;
+    print Dumper $failed_samples;
+    print Dumper $completed_samples;
+    print Dumper $sample_info;
+    die;
     # $samples_status->{$run_status}{$mergedSortedIds}{$created_timestamp}{$sample_id} = $run_status;
     # read it if it exists and add to structure
     if (-e $local_cache_file && -s $local_cache_file > 0) {
@@ -43,7 +47,7 @@ sub combine_local_data {
             }
             elsif ($a[3] eq 'failed') {
                 $failed_samples->{$a[0]}{$a[1]}{$a[2]} = $a[3];
-            } 
+            }
             else {
                 # just add to failed if don't know
                 $failed_samples->{$a[0]}{$a[1]}{$a[2]} = $a[3];
@@ -63,7 +67,7 @@ sub combine_local_data {
                     $project_donor_id = $analysis_id_to_donor->{$id}{project_donor_id};
                 }
             }
-  
+
             foreach my $created_timestamp (keys %{$hash->{$mergedSortedIds}}) {
                 foreach my $sample_id (keys %{$hash->{$mergedSortedIds}{$created_timestamp}}) {
                     say $out "$mergedSortedIds\t$created_timestamp\t$sample_id\t".$hash->{$mergedSortedIds}{$created_timestamp}{$sample_id}."\t$project_code\t$project_donor_id";
@@ -87,7 +91,7 @@ sub parse_donors {
             if (defined $project_code) {
                 $project_donor_id =~ /($project_code-)(\S+)/;
                 $project_donor_id = $2;
-            } 
+            }
             else {
                 $project_donor_id = 'unknown';
             }
@@ -295,7 +299,7 @@ sub  get_sample_info {
          my ($parameter, $value) = split '=', $line, 2;
          $parameters{$parameter} = $value;
     }
-    
+
     my $donor_id = $parameters{donor_id};
     my $tumour_aliquot_ids = $parameters{tumourAliquotIds};
     my $tumour_bams = $parameters{tumourBams};
