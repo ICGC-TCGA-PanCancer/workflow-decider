@@ -390,7 +390,7 @@ sub schedule_donor {
 
             foreach my $alignment_id (keys %{$alignments}) {
 
-                if
+                
 
                 # Skip unaligned BAMs, not relevant to VC workflows
                 my $aliquots = $alignments->{$alignment_id};
