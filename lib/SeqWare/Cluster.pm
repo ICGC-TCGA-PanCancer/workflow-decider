@@ -43,7 +43,7 @@ sub combine_local_data {
         open my $in, '<', $local_cache_file;
         while(<$in>) {
             chomp;
-            next if (/^#/):
+            next if (/^#/);
             my @a = split /\t/;
             if ($a[3] eq 'running') {
               # keeping a count so eventually can declare these "lost" and retry them
