@@ -37,6 +37,7 @@ get_list($ARGV{'--schedule-whitelist-donor'},  'white', 'donor',  $whitelist);
 get_list($ARGV{'--schedule-blacklist-sample'}, 'black', 'sample', $blacklist);
 get_list($ARGV{'--schedule-blacklist-donor'},  'black', 'donor',  $blacklist);
 
+
 say 'Getting SeqWare Cluster Information';
 my ($cluster_information, $running_sample_ids, $failed_samples, $completed_samples)
           = SeqWare::Cluster->cluster_seqware_information( $report_file,

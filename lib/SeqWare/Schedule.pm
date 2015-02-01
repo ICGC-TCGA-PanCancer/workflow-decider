@@ -26,39 +26,45 @@ sub schedule_samples {
 
     # Still clunky but a least args won't get mixed up if they
     # are in the wrong order
-    my $report_file             = $args{'report_file'};
-    my $sample_information      = $args{'sample_information'};
-    my $cluster_information     = $args{'cluster_information'};
-    my $running_samples         = $args{'running_sample_ids'};
-    my $failed_samples          = $args{'failed_sample_ids'};
-    my $completed_samples       = $args{'completed_sample_ids'};
-    my $skip_scheduling         = $args{'skip-scheduling'};
-    my $specific_sample         = $args{'schedule-sample'};
-    my $specific_donor          = $args{'schedule-center'};
-    my $specific_center         = $args{'schedule-donor'};
-    my $ignore_lane_count       = $args{'schdeule-ignore-lane-count'};
-    my $seqware_settings_file   = $args{'seqware-settings'};
-    my $output_dir              = $args{'workflow-output-dir'};
-    my $output_prefix           = $args{'workflow-output-prefix'};
-    my $force_run               = $args{'schedule-force-run'};
-    my $threads                 = $args{'cores-addressable'};
-    my $mem_host_mb_available   = $args{'mem-host-mb-available'};
-    my $skip_gtdownload         = $args{'workflow-skip-gtdownload'};
-    my $skip_gtupload           = $args{'workflow-skip-gtdownload'};
-    my $upload_results          = $args{'workflow-upload-results'};
-    my $input_prefix            = $args{'workflow-input-prefix'};
-    my $gnos_download_url       = $args{'gnos-download-url'};
-    my $gnos_upload_url         = $args{'gnos-upload-url'};
-    my $ignore_failed           = $args{'schedule-ignore-failed'};
-    my $working_dir             = $args{'working-dir'};
-    my $workflow_version        = $args{'workflow-version'};
-    my $workflow_name           = $args{'workflow-name'};
-    my $bwa_workflow_version    = $args{'bwa-workflow-version'};
-    my $tabix_url               = $args{'tabix-url'};
-    my $download_pem_file       = $args{'gtdownload-pem-file'};
-    my $upload_pem_file         = $args{'gtupload-pem-file'};
-    my $whitelist               = $args{'whitelist'};
-    my $blacklist               = $args{'blacklist'};
+    my $report_file                 = $args{'report_file'};
+    my $sample_information          = $args{'sample_information'};
+    my $cluster_information         = $args{'cluster_information'};
+    my $running_samples             = $args{'running_sample_ids'};
+    my $failed_samples              = $args{'failed_sample_ids'};
+    my $completed_samples           = $args{'completed_sample_ids'};
+    my $skip_scheduling             = $args{'skip-scheduling'};
+    my $specific_sample             = $args{'schedule-sample'};
+    my $specific_donor              = $args{'schedule-center'};
+    my $specific_center             = $args{'schedule-donor'};
+    my $ignore_lane_count           = $args{'schdeule-ignore-lane-count'};
+    my $seqware_settings_file       = $args{'seqware-settings'};
+    my $output_dir                  = $args{'workflow-output-dir'};
+    my $output_prefix               = $args{'workflow-output-prefix'};
+    my $force_run                   = $args{'schedule-force-run'};
+    my $threads                     = $args{'cores-addressable'};
+    my $mem_host_mb_available       = $args{'mem-host-mb-available'};
+    my $skip_gtdownload             = $args{'workflow-skip-gtdownload'};
+    my $skip_gtupload               = $args{'workflow-skip-gtdownload'};
+    my $upload_results              = $args{'workflow-upload-results'};
+    my $input_prefix                = $args{'workflow-input-prefix'};
+    my $gnos_download_url           = $args{'gnos-download-url'};
+    my $gnos_upload_url             = $args{'gnos-upload-url'};
+    my $ignore_failed               = $args{'schedule-ignore-failed'};
+    my $working_dir                 = $args{'working-dir'};
+    my $workflow_version            = $args{'workflow-version'};
+    my $workflow_name               = $args{'workflow-name'};
+    my $bwa_workflow_version        = $args{'bwa-workflow-version'};
+    my $tabix_url                   = $args{'tabix-url'};
+    my $download_pem_file           = $args{'gtdownload-pem-file'};
+    my $upload_pem_file             = $args{'gtupload-pem-file'};
+    my $whitelist                   = $args{'whitelist'};
+    my $blacklist                   = $args{'blacklist'};
+    my $cleanup                     = $args{'workflow-cleanup'};
+    my $study_refname_override      = $args{'study-refname-override'};
+    my $analysis_center_override    = $args{'analysis-center-override'};
+    my $seqware_output_lines_number = $args{'seqware-output-lines-number'};
+    my $test_mode                   = $args{'test-mode'};
+    my $workflow_template           = $args{'workflow-template'};
 
     say $report_file "SAMPLE SCHEDULING INFORMATION\n";
 
@@ -144,7 +150,13 @@ sub schedule_samples {
                                       $blacklist,
                                       $tabix_url,
                                       $download_pem_file,
-                                      $upload_pem_file);
+                                      $upload_pem_file,
+                                      $cleanup,
+                                      $study_refname_override,
+                                      $analysis_center_override,
+                                      $seqware_output_lines_number,
+                                      $test_mode,
+                                      $workflow_template);
             }
             elsif (@whitelist > 0) {
                 say STDERR "Donor $donor_id is not on the whitelist";
@@ -177,7 +189,13 @@ sub schedule_workflow {
          $bwa_workflow_version,
          $tabix_url,
          $download_pem_file,
-         $upload_pem_file
+         $upload_pem_file,
+         $cleanup,
+         $study_refname_override,
+         $analysis_center_override,
+         $seqware_output_lines_number,
+         $test_mode,
+         $workflow_template
         ) = @_;
 
     my $cluster = (keys %{$cluster_information})[0];
@@ -224,20 +242,26 @@ sub schedule_workflow {
             $tabix_url,
             $download_pem_file,
             $upload_pem_file,
+            $cleanup,
+            $study_refname_override,
+            $analysis_center_override,
+            $seqware_output_lines_number,
+            $test_mode,
+            $workflow_template
             );
     }
 
-    $self->submit_workflow(
-        $working_dir,
-        $workflow_accession,
-        $host,
-        $skip_scheduling,
-        $cluster_found,
-        $report_file,
-        $url,
-        $center_name,
-        $donor_id
-        );
+   $self->submit_workflow(
+       $working_dir,
+       $workflow_accession,
+       $host,
+       $skip_scheduling,
+       $cluster_found,
+       $report_file,
+       $url,
+       $center_name,
+       $donor_id
+       );
 
     delete $cluster_information->{$cluster} if ($cluster_found);
 }
@@ -333,7 +357,13 @@ sub schedule_donor {
          $blacklist,
          $tabix_url,
          $download_pem_file,
-         $upload_pem_file
+         $upload_pem_file,
+         $cleanup,
+         $study_refname_override,
+         $analysis_center_override,
+         $seqware_output_lines_number,
+         $test_mode,
+         $workflow_template
         ) = @_;
 
     say "GOING TO SCHEDULE";
@@ -598,7 +628,13 @@ sub schedule_donor {
                               $bwa_workflow_version,
                               $tabix_url,
                               $download_pem_file,
-                              $upload_pem_file
+                              $upload_pem_file,
+                              $cleanup,
+                              $study_refname_override,
+                              $analysis_center_override,
+                              $seqware_output_lines_number,
+                              $test_mode,
+                              $workflow_template
         )
         if $self->should_be_scheduled(
             $report_file,

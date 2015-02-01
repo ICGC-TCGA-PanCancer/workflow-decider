@@ -26,10 +26,10 @@ sub combine_local_data {
 
     my $analysis_id_to_donor = parse_donors($sample_info);
 
-    print Dumper $running_sample_ids;
-    print Dumper $failed_samples;
-    print Dumper $completed_samples;
-    print Dumper $sample_info;
+    #print Dumper $running_sample_ids;
+    #print Dumper $failed_samples;
+    #print Dumper $completed_samples;
+    #print Dumper $sample_info;
 
     # a hash that stores decider run counts since last seen for a previously running sample
     my $count_since_last_seen = {};
@@ -98,8 +98,6 @@ sub combine_local_data {
     }
     close $out;
     # return the structures
-
-    die;
 
     return($running_sample_ids, $failed_samples, $completed_samples);
 }

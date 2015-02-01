@@ -66,9 +66,14 @@ sub create_workflow_ini {
 	$center_name,
 	$tabix_url,
 	$download_pem_file,
-        $upload_pem_file) = @_;
+        $upload_pem_file,
+        $cleanup,
+        $study_refname_override,
+        $analysis_center_override,
+        $seqware_output_lines_number,
+        $test_mode,
+        $workflow_template) = @_;
 
- 
     # Read in the default data
     my @normal_alignments = keys %{$donor->{normal}};
     my @tumor_alignments  = keys %{$donor->{tumor}};
@@ -87,22 +92,27 @@ sub create_workflow_ini {
     }
 
     my $data = {};
-    $data->{'coresAddressable'}   = $threads;
-    $data->{'tabixSrvUri'}        = $tabix_url;
-    $data->{'tumourAnalysisIds'}  = join(':',@tumor_analysis);
-    $data->{'tumourAliquotIds'}   = join(':',@tumor_aliquot);
-    $data->{'tumourBams'}         = join(':',@tumor_bam);
-    $data->{'controlAnalysisId'}  = join(':',@normal_analysis);
-    $data->{'controlAliquotId'}   = join(':',@normal_aliquot);
-    $data->{'controlBam'}         = join(':',@normal_bam);
-    $data->{'pemFile'}            = $download_pem_file;
-    $data->{'uplaodPemFile'}      = $upload_pem_file;
-    $data->{'gnosServer'}         = $gnos_download_url;
-    $data->{'uploadServer'}       = $gnos_upload_url;
-    $data->{'donor_id'}           = $donor->{donor_id};    
-    $data->{'memHostMbAvailable'} = $mem_host_mb_available;  
+    $data->{'coresAddressable'}            = $threads;
+    $data->{'tabixSrvUri'}                 = $tabix_url;
+    $data->{'tumourAnalysisIds'}           = join(':',@tumor_analysis);
+    $data->{'tumourAliquotIds'}            = join(':',@tumor_aliquot);
+    $data->{'tumourBams'}                  = join(':',@tumor_bam);
+    $data->{'controlAnalysisId'}           = join(':',@normal_analysis);
+    $data->{'controlAliquotId'}            = join(':',@normal_aliquot);
+    $data->{'controlBam'}                  = join(':',@normal_bam);
+    $data->{'pemFile'}                     = $download_pem_file;
+    $data->{'uploadPemFile'}               = $upload_pem_file;
+    $data->{'gnosServer'}                  = $gnos_download_url;
+    $data->{'uploadServer'}                = $gnos_upload_url;
+    $data->{'donor_id'}                    = $donor->{donor_id};    
+    $data->{'memHostMbAvailable'}          = $mem_host_mb_available;  
+    $data->{'cleanup'}                     = ($cleanup)? 'true':'false';
+    $data->{'studyRefnameOverride'}        = $study_refname_override;
+    $data->{'analysisCenterOverride'}      = $analysis_center_override;
+    $data->{'seqwareOutputLinesNumber'}    = $seqware_output_lines_number;
+    $data->{'testMode'}                    = ($test_mode)? 'true':'false';
 
-    my $template = "$Bin/../conf/ini/workflow-$workflow_version.ini";
+    my $template = "$Bin/../$workflow_template";
 
     my $ini_factory = $self->factory;
     $working_dir = "$Bin/../$working_dir/ini";
