@@ -273,7 +273,7 @@ sub find_available_clusters {
 
         say $report_file "\t\tWORKFLOW: ".$workflow_accession." STATUS: ".$run_status;
 
-        my ($donor_id, $created_timestamp, $tumour_aliquote_ids);
+        my ($donor_id, $created_timestamp, $tumour_aliquote_ids, $sample_id, $merged_id);
 
         if ( ($donor_id, $created_timestamp, $tumour_aliquote_ids, $sample_id, $merged_id) = get_sample_info($report_file, $seqware_run))    {
 
