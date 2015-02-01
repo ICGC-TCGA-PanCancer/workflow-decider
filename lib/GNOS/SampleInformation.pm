@@ -77,8 +77,8 @@ sub get {
         #say STDERR "Downloading only sample blacklist analysis results" if @sample_blacklist > 0;
     }
 
-print Dumper(\@donor_whitelist);
-print Dumper(\@donor_blacklist);
+    #print Dumper(\@donor_whitelist);
+    #print Dumper(\@donor_blacklist);
 
     # Save info about variant workflows external to the analysis list
     my $variant_workflow = {};

@@ -351,8 +351,8 @@ sub schedule_donor {
 
     my @sample_ids = keys %{$donor_information};
 
-    print "DOES THIS CONTAIN VAR CALLING!?!?\n";
-    print Dumper($donor_information);
+    #print "DOES THIS CONTAIN VAR CALLING!?!?\n";
+    #print Dumper($donor_information);
 
     my @samples;
 
