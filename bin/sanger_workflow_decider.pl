@@ -58,9 +58,6 @@ if ($ARGV{'--filter-downloads-by-blacklist'}) {
     $gnos_info->filter_by_blacklist(1);
 }
 
-print Dumper ($gnos_info);
-die;
-
 
 my $sample_information = $gnos_info->get( $ARGV{'--working-dir'},
 					  $ARGV{'--gnos-download-url'},
@@ -68,6 +65,10 @@ my $sample_information = $gnos_info->get( $ARGV{'--working-dir'},
                                           $ARGV{'--use-cached-analysis'},
 					  $whitelist,
 					  $blacklist);
+
+
+print Dumper ($sample_information);
+die;
 
 if (defined($ARGV{'--local-status-cache'})) {
   say 'Combining Previous Results with Local Cache File';
