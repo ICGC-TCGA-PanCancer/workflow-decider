@@ -225,7 +225,7 @@ sub get {
 	# We don't need to save the analysis for variant calls, just
 	# to record that it has been run.
 	if ($vc_workflow_name && $vc_workflow_version) {
-	    # just record the newer one if an earlier version exists
+	    # just record the newer one if a later version exists
 	    if ( my $version = $variant_workflow->{$donor_id}{$vc_workflow_name} ) {
 		my @version1 = split /\./, $version;
 		my @version2 = split /\./, $vc_workflow_version;
@@ -320,7 +320,7 @@ sub get {
         }
         elsif ($workflow_name eq 'SangerPancancerCgpCnIndelSnvStr') {
 	        # Save VC workflow data without mangling
-	        $participants->{$center_name}{$donor_id}{variant_workflow} = $variant_workflow;
+	        $participants->{$center_name}{$donor_id}{variant_workflow} = $variant_workflow->{$donor_id};
         }
 
         # everything gets these keys, will need to be ignored by other parts of the codebase
