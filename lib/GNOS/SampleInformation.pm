@@ -319,12 +319,15 @@ sub get {
             }
         }
         elsif ($workflow_name eq 'SangerPancancerCgpCnIndelSnvStr') {
-	    # Save VC workflow data without mangling
-	    $participants->{$center_name}{$donor_id}{variant_workflow} = $variant_workflow;
-            # save info on project and donor code
-            $participants->{$center_name}{$donor_id}{dcc_project_code} = $dcc_project_code;
-            $participants->{$center_name}{$donor_id}{submitter_donor_id} = $submitter_donor_id;
+	        # Save VC workflow data without mangling
+	        $participants->{$center_name}{$donor_id}{variant_workflow} = $variant_workflow;
         }
+
+        # everything gets these keys, will need to be ignored by other parts of the codebase
+        # since they are stored in the same level as the alginment records
+        # save info on project and donor code
+        $participants->{$center_name}{$donor_id}{dcc_project_code} = $dcc_project_code;
+        $participants->{$center_name}{$donor_id}{submitter_donor_id} = $submitter_donor_id;
     }
     close $parse_log;
 
