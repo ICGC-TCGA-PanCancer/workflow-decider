@@ -328,7 +328,9 @@ sub  get_sample_info {
     my $tumour_bams = $parameters{tumourBams};
     my $control_bam = $parameters{controlBam};
     my $sample_id =  $parameters{sample_id};
-    my @urls = split /,/, $parameters{gnos_input_metadata_urls};
+    my $input_meta_URLs = $parameters{gnos_input_metadata_urls};
+    $input_meta_URLs //= '';
+    my @urls = split /,/, $input_meta_URLs;
     $donor_id //= 'unknown';
     $sample_id //= 'unknown';
 
