@@ -88,6 +88,7 @@ sub combine_local_data {
                 foreach my $sample_id (keys %{$hash->{$mergedSortedIds}{$created_timestamp}}) {
                     my $state = $hash->{$mergedSortedIds}{$created_timestamp}{$sample_id};
                     my $count = $count_since_last_seen->{$mergedSortedIds}{$created_timestamp}{$sample_id};
+                    $count //= 0;
                     say $out "$mergedSortedIds\t$created_timestamp\t$sample_id\t$state\t$project_code\t$project_donor_id\t$count";
                 }
             }
