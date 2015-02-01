@@ -23,27 +23,48 @@ use Data::Dumper;
 
 sub combine_local_data {
     my ($self, $running_sample_ids, $failed_samples, $completed_samples, $local_cache_file, $sample_info) = @_;
-  
+
     my $analysis_id_to_donor = parse_donors($sample_info);
-  
-    #print Dumper $running_sample_ids;
+
+    print Dumper $running_sample_ids;
+    print Dumper $failed_samples;
+    print Dumper $completed_samples;
+    print Dumper $sample_info;
+
+    # a hash that stores decider run counts since last seen for a previously running sample
+    my $count_since_last_seen = {};
+
+    # used for lost
+    my $lost_samples = {};
+
     # $samples_status->{$run_status}{$mergedSortedIds}{$created_timestamp}{$sample_id} = $run_status;
     # read it if it exists and add to structure
     if (-e $local_cache_file && -s $local_cache_file > 0) {
         open my $in, '<', $local_cache_file;
         while(<$in>) {
             chomp;
+            next if (/^#/);
             my @a = split /\t/;
             if ($a[3] eq 'running') {
-                #$running_sample_ids->{$a[0]}{$a[1]}{$a[2]} = $a[3];
-                # never cache the running, always rediscover in case a running box was terminated, want to restart
+              # keeping a count so eventually can declare these "lost" and retry them
+              if (defined($running_sample_ids->{$a[0]}{$a[1]}{$a[2]})) {
+                $count_since_last_seen->{$a[0]}{$a[1]}{$a[2]} = 0;
+              } else {
+                $count_since_last_seen->{$a[0]}{$a[1]}{$a[2]} = $a[6] + 1;
+                # TODO: make this a configurable option
+                if ($count_since_last_seen->{$a[0]}{$a[1]}{$a[2]} > 5) { $lost_samples->{$a[0]}{$a[1]}{$a[2]} = $a[3]; }
+                else { $running_sample_ids->{$a[0]}{$a[1]}{$a[2]} = $a[3]; }
+              }
             }
             elsif ($a[3] eq 'completed') {
                 $completed_samples->{$a[0]}{$a[1]}{$a[2]} = $a[3];
             }
             elsif ($a[3] eq 'failed') {
-                $failed_samples->{$a[0]}{$a[1]}{$a[2]} = $a[3];
-            } 
+              $failed_samples->{$a[0]}{$a[1]}{$a[2]} = $a[3];
+            }
+            elsif ($a[3] eq 'lost') {
+              $lost_samples->{$a[0]}{$a[1]}{$a[2]} = $a[3];
+            }
             else {
                 # just add to failed if don't know
                 $failed_samples->{$a[0]}{$a[1]}{$a[2]} = $a[3];
@@ -53,7 +74,8 @@ sub combine_local_data {
     }
     # now save these back out, running is always a fresh list of what's really running
     open my $out, '>', $local_cache_file;
-    foreach my $hash ($running_sample_ids, $failed_samples, $completed_samples) {
+    say $out "#MergedSortedAnalysisIds\tCreateTimestamp\tSampleId\tState\tProject\tDonorId\tCountsSinceLastSeen";
+    foreach my $hash ($running_sample_ids, $failed_samples, $completed_samples, $lost_samples) {
         foreach my $mergedSortedIds (keys %{$hash}) {
             my $project_code = "";
             my $project_donor_id = "";
@@ -63,16 +85,22 @@ sub combine_local_data {
                     $project_donor_id = $analysis_id_to_donor->{$id}{project_donor_id};
                 }
             }
-  
+
             foreach my $created_timestamp (keys %{$hash->{$mergedSortedIds}}) {
                 foreach my $sample_id (keys %{$hash->{$mergedSortedIds}{$created_timestamp}}) {
-                    say $out "$mergedSortedIds\t$created_timestamp\t$sample_id\t".$hash->{$mergedSortedIds}{$created_timestamp}{$sample_id}."\t$project_code\t$project_donor_id";
+                    my $state = $hash->{$mergedSortedIds}{$created_timestamp}{$sample_id};
+                    my $count = $count_since_last_seen->{$mergedSortedIds}{$created_timestamp}{$sample_id};
+                    $count //= 0;
+                    say $out "$mergedSortedIds\t$created_timestamp\t$sample_id\t$state\t$project_code\t$project_donor_id\t$count";
                 }
             }
         }
     }
     close $out;
     # return the structures
+
+    die;
+
     return($running_sample_ids, $failed_samples, $completed_samples);
 }
 
@@ -87,7 +115,7 @@ sub parse_donors {
             if (defined $project_code) {
                 $project_donor_id =~ /($project_code-)(\S+)/;
                 $project_donor_id = $2;
-            } 
+            }
             else {
                 $project_donor_id = 'unknown';
             }
@@ -214,7 +242,7 @@ sub seqware_information {
 
     my %cluster_info;
     if ($running < $max_running ) {
-        say $report_file  "\tTHERE ARE $running RUNNING WORKFLOWS WHICH IS LESS THAN MAX OF $max_running, ADDING TO LIST OF AVAILABLE CLUSTERS";
+        say $report_file  "\tTHERE ARE $running RUNNING WORKFLOWS (OF WHICH $failed ARE FAILED) WHICH IS LESS THAN MAX OF $max_running, ADDING TO LIST OF AVAILABLE CLUSTERS";
         for (my $i=0; $i<$max_scheduled_workflows; $i++) {
             my %cluster_metadata = %{$cluster_metadata};
             $cluster_info{"$cluster_name-$i"} = \%cluster_metadata
@@ -269,14 +297,15 @@ sub find_available_clusters {
 
         say $report_file "\t\tWORKFLOW: ".$workflow_accession." STATUS: ".$run_status;
 
-        my ($donor_id, $created_timestamp, $tumour_aliquote_ids);
+        my ($donor_id, $created_timestamp, $tumour_aliquote_ids, $sample_id, $merged_id);
 
-        if ( ($donor_id, $created_timestamp, $tumour_aliquote_ids) = get_sample_info($report_file, $seqware_run))    {
+        if ( ($donor_id, $created_timestamp, $tumour_aliquote_ids, $sample_id, $merged_id) = get_sample_info($report_file, $seqware_run))    {
 
             my $running_status = { 'pending' => 1,   'running' => 1,
                                    'scheduled' => 1, 'submitted' => 1 };
             $running_status = 'running' if ($running_status->{$run_status});
-            $samples_status->{$run_status}{$tumour_aliquote_ids}{$created_timestamp}{$donor_id} = $run_status;
+            #################$samples_status->{$run_status}{$tumour_aliquote_ids}{$created_timestamp}{$donor_id} = $run_status;
+            $samples_status->{$run_status}{$merged_id}{$created_timestamp}{$sample_id} = $run_status;
         }
      }
 
@@ -295,19 +324,48 @@ sub  get_sample_info {
          my ($parameter, $value) = split '=', $line, 2;
          $parameters{$parameter} = $value;
     }
-    
+
     my $donor_id = $parameters{donor_id};
     my $tumour_aliquot_ids = $parameters{tumourAliquotIds};
     my $tumour_bams = $parameters{tumourBams};
     my $control_bam = $parameters{controlBam};
+    my $sample_id =  $parameters{sample_id};
+    my $input_meta_URLs = $parameters{gnos_input_metadata_urls};
+    $input_meta_URLs //= '';
+    my @urls = split /,/, $input_meta_URLs;
     $donor_id //= 'unknown';
+    $sample_id //= 'unknown';
+
     say $report_file "\t\t\tDonor ID: $donor_id";
+    say $report_file "\t\t\tSample ID: $sample_id";
     say $report_file "\t\t\tCreated Timestamp: $created_timestamp";
+    my $sorted_urls = join(',', sort @urls);
+    say $report_file "\t\t\tInput URLs: $sorted_urls";
+    my $cwd = $parameters{currentWorkingDir};
+    $cwd //= '';
+    say $report_file "\t\t\tCwd: $cwd";
+    my $swaccession  = $parameters{swAccession};
+    $swaccession //= '';
+    say $report_file "\t\t\tWorkflow Accession: $swaccession";
     say $report_file "\t\t\tTumour Aliquote Ids: $tumour_aliquot_ids";
     say $report_file "\t\t\tTumour Bams: $tumour_bams";
     say $report_file "\t\t\tTumour Control: $control_bam";
+    # this is used to identify the variant calling run in the local cache file
+    my @mergedIds;
+    foreach my $tumor_id (split (/,/, $parameters{tumourAnalysisIds})) {
+      foreach my $sub_tumor_id (split (/:/, $tumor_id)) {
+        push @mergedIds, $sub_tumor_id;
+      }
+    }
+    foreach my $norm_id (split (/,/, $parameters{controlAnalysisId})) {
+      foreach my $sub_norm_id (split (/:/, $norm_id)) {
+        push @mergedIds, $sub_norm_id;
+      }
+    }
+    my @sortedMergedIds = sort @mergedIds;
+    say $report_file "\t\t\tMerged Sorted IDs: ".join(",", @sortedMergedIds);
 
-    return ($donor_id, $created_timestamp, $tumour_aliquot_ids);
+    return ($donor_id, $created_timestamp, $tumour_aliquot_ids, $sample_id, join(",", @sortedMergedIds));
 }
 
 1;

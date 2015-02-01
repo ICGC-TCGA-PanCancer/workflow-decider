@@ -109,12 +109,12 @@ sub schedule_samples {
 
             # Skip non-whitelisted donors if applicable
             my $on_whitelist = grep {/^$donor_id/} @whitelist;
-  
+
             if (scalar(@whitelist) == 0 or $on_whitelist) {
                 say STDERR "Donor $donor_id is on the whitelist" if $on_whitelist;
-  
+
                 my $donor_information = $sample_information->{$center_name}{$donor_id};
-                 
+
                 $self->schedule_donor($report_file,
                                       $donor_id,
                                       $donor_information,
@@ -128,7 +128,7 @@ sub schedule_samples {
                                       $output_prefix,
                                       $force_run,
                                       $threads,
-                                      $mem_host_mb_available,                          
+                                      $mem_host_mb_available,
                                       $skip_gtdownload,
                                       $skip_gtupload,
                                       $upload_results,
@@ -641,10 +641,14 @@ sub previously_failed_running_or_completed {
     my @want_to_run;
 
     foreach my $key (keys %{$donor->{normal}}) {
-      push @want_to_run, $donor->{analysis_ids}{$key};
+      foreach my $sub_key (split(/:/, $donor->{analysis_ids}{$key})) {
+        push @want_to_run, $sub_key;
+      }
     }
     foreach my $key (keys %{$donor->{tumor}}) {
-      push @want_to_run, $donor->{analysis_ids}{$key};
+      foreach my $sub_key (split (/:/, $donor->{analysis_ids}{$key})) {
+        push @want_to_run, $sub_key;
+      }
     }
 
     my $want_to_run_str = join (",", sort(@want_to_run));
