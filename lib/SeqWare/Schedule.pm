@@ -618,7 +618,7 @@ sub should_be_scheduled {
     # running_samples here actually contains running, failed, and completed
     my $prev_failed_running_complete = $self->previously_failed_running_or_completed($donor, $running_samples);
     if ($prev_failed_running_complete) {
-      say $report_file "\t\t\tCONCLUSION: NOT SCHEDULING FOR VCF, PREVIOUSLY FAILED, RUNNING, OR COMPLETED";
+    say $report_file "\t\tCONCLUSION: NOT SCHEDULING FOR VCF, PREVIOUSLY FAILED, RUNNING, OR COMPLETED";
       #print "\t\t\tCONCLUSION: NOT SCHEDULING FOR VCF, PREVIOUSLY FAILED, RUNNING, OR COMPLETED\n";
       return 0;
     }
