@@ -52,28 +52,33 @@ sub get {
     if ($whitelist) {
 	@donor_whitelist = @{$whitelist->{donor}};
 	for (@donor_whitelist) {
-	    s/^\S+\s+//;
+	    #s/^\S+\s+//;
+      s/\s+/-/;
 	}
-	say STDERR "Downloading only donor whitelist analysis results" if @donor_whitelist > 0;
+	#say STDERR "Downloading only donor whitelist analysis results" if @donor_whitelist > 0;
     }
     my @donor_blacklist;
     if ($blacklist) {
 	@donor_blacklist = @{$blacklist->{donor}};
 	for (@donor_blacklist) {
-	    s/^\S+\s+//;
+    #s/^\S+\s+//;
+    s/\s+/-/;
 	}
-	say STDERR "Downloading only donor blacklist analysis results" if @donor_blacklist > 0;
+	#say STDERR "Downloading only donor blacklist analysis results" if @donor_blacklist > 0;
     }
     my @sample_whitelist;
     if ($whitelist) {
         @sample_whitelist = grep {/^\S+$/} @{$whitelist->{sample}};
-        say STDERR "Downloading only sample whitelist analysis results" if @sample_whitelist > 0;
+        #say STDERR "Downloading only sample whitelist analysis results" if @sample_whitelist > 0;
     }
     my @sample_blacklist;
     if ($blacklist) {
         @sample_blacklist = grep{/^\S+$/} @{$blacklist->{sample}};
-        say STDERR "Downloading only sample blacklist analysis results" if @sample_blacklist > 0;
+        #say STDERR "Downloading only sample blacklist analysis results" if @sample_blacklist > 0;
     }
+
+    #print Dumper(\@donor_whitelist);
+    #print Dumper(\@donor_blacklist);
 
     # Save info about variant workflows external to the analysis list
     my $variant_workflow = {};
@@ -204,6 +209,12 @@ sub get {
         $dcc_project_code //= 'unkonwn';
         $submitter_donor_id //= 'unknown';
 	my $donor_id =  join('-',$dcc_project_code,$submitter_donor_id);
+
+        # need to make the judgement here whether to continue or not
+        # skip if on the blacklist
+        # if defined and not on the whitelist skip as well
+        next if @donor_blacklist > 0 and grep {/^$donor_id$/} @donor_blacklist;
+        next if @donor_whitelist > 0 and !grep {/^$donor_id$/} @donor_whitelist;
 
         $submitter_sample_id //= '';
         $workflow_name //= '';

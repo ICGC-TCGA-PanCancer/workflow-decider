@@ -52,7 +52,9 @@ sub combine_local_data {
               } else {
                 $count_since_last_seen->{$a[0]}{$a[1]}{$a[2]} = $a[6] + 1;
                 # TODO: make this a configurable option
-                if ($count_since_last_seen->{$a[0]}{$a[1]}{$a[2]} > 5) { $lost_samples->{$a[0]}{$a[1]}{$a[2]} = $a[3]; }
+                if ($count_since_last_seen->{$a[0]}{$a[1]}{$a[2]} > 5) {
+                  $lost_samples->{$a[0]}{$a[1]}{$a[2]} = 'lost';
+                }
                 else { $running_sample_ids->{$a[0]}{$a[1]}{$a[2]} = $a[3]; }
               }
             }

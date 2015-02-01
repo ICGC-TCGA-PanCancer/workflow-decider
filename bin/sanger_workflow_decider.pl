@@ -46,6 +46,10 @@ my ($cluster_information, $running_sample_ids, $failed_samples, $completed_sampl
                                                   $ARGV{'--workflow-version'},
                                                   $ARGV{'--failure-reports-dir'});
 
+#print Dumper ($whitelist);
+#print Dumper ($blacklist);
+
+
 say 'Reading in GNOS Sample Information';
 my $gnos_info = GNOS::SampleInformation->new();
 if ($ARGV{'--filter-downloads-by-whitelist'}) {
@@ -55,12 +59,17 @@ if ($ARGV{'--filter-downloads-by-blacklist'}) {
     $gnos_info->filter_by_blacklist(1);
 }
 
+# FIXME: this code (get) actually does NOTHING with the whitelist... still returns all sample info!?!
+# FIXME: it also strips out the project code making the whitelists not uniq?
 my $sample_information = $gnos_info->get( $ARGV{'--working-dir'},
 					  $ARGV{'--gnos-download-url'},
 					  $ARGV{'--use-cached-xml'},
                                           $ARGV{'--use-cached-analysis'},
 					  $whitelist,
 					  $blacklist);
+
+
+#print Dumper ($sample_information);
 
 if (defined($ARGV{'--local-status-cache'})) {
   say 'Combining Previous Results with Local Cache File';
@@ -77,6 +86,9 @@ say 'Scheduling Samples';
 my $scheduler = SeqWare::Schedule::Sanger->new();
 my %args = %ARGV;
 strip_keys(\%args);
+
+#print Dumper ($whitelist);
+#print Dumper ($blacklist);
 
 $args{report_file}         = $report_file;
 $args{sample_information}  = $sample_information;
