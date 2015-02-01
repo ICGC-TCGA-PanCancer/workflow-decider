@@ -209,7 +209,7 @@ sub get {
         $workflow_name //= '';
         $workflow_version //= '';
         $bam_type //= '';
-        
+
         say $parse_log "\tPROJECT CODE:\t$dcc_project_code";
         say $parse_log "\tDONOR UNIQUE ID:\t$donor_id";
         say $parse_log "\tANALYSIS:\t$analysis_data_uri";
@@ -243,19 +243,19 @@ sub get {
 	    say $parse_log "\tNO WORKFLOW INFORMATION; analysis skipped";
 	    next;
 	}
-        
+
         if ($workflow_name eq 'Workflow_Bundle_BWA') {
-            # don't save the analysis if unaligned 
+            # don't save the analysis if unaligned
             if ($bam_type eq 'unaligned') {
                 say $parse_log "\tUNALIGNED BAM; analysis skipped";
                 next;
             }
-    
+
             chomp $analysis_result{experiment_xml};
-    
+
             my $library_descriptor;
             if (exists ($analysis_result{experiment_xml}) and ( ref($analysis_result{experiment_xml}) eq 'HASH') ) {
-    
+
                  if (ref($analysis_result{experiment_xml}{EXPERIMENT_SET}{EXPERIMENT}) eq 'HASH') {
                      $library_descriptor = $analysis_result{experiment_xml}{EXPERIMENT_SET}{EXPERIMENT}{DESIGN}{LIBRARY_DESCRIPTOR};
                  }
@@ -267,24 +267,24 @@ sub get {
             my $library_name = $library{LIBRARY_NAME};
             my $library_strategy = $library{LIBRARY_STRATEGY};
             my $library_source = $library{LIBRARY_SOURCE};
-    
+
             say $parse_log "\tLibrary\n\t\tName:\t$library_name\n\t\tLibrary Strategy:\t$library_strategy\n\t\tLibrary Source:\t$library_source";
-    
+
             if (not $library_name or not $library_strategy or not $library_source or not $analysis_id or not $analysis_data_uri) {
                 say $parse_log "\tERROR: one or more critical fields not defined, will skip $analysis_id\n";
                 next;
             }
-    
+
             say $parse_log "\tgtdownload -c gnostest.pem -v -d $analysis_data_uri\n";
-    
+
             #This takes into consideration the files that were submitted with the old SOP
             if ((defined $submitter_donor_id) and (defined $submitter_donor_id ne '')) {
                 $submitter_sample_id = $submitter_specimen_id;
             }
-    
+
             $sample_id = (defined $submitter_specimen_id) ? $submitter_specimen_id: $sample_id;
             $center_name //= 'unknown';
-    
+
             my $library = {
                     analysis_ids             => $analysis_id,
                     analysis_url             => $analysis_data_uri,
@@ -300,13 +300,13 @@ sub get {
                     bwa_workflow_version     => $bwa_workflow_version,
                     dcc_specimen_type        => $dcc_specimen_type
                   };
-    
-            $center_name = 'seqware';
+
+            ####$center_name = 'seqware';
             if ($alignment ne 'unaligned') {
                 $alignment = "$alignment - $analysis_id - $bwa_workflow_name - $bwa_workflow_version - $upload_date";
             }
-             
-    
+
+
             foreach my $attribute (keys %{$library}) {
                 my $library_value = (defined $library->{$attribute})?
                                       $library->{$attribute}: 'unknown';
@@ -317,7 +317,7 @@ sub get {
                 my $file_info = $files->{$file_name};
                 $participants->{$center_name}{$donor_id}{$sample_id}{$alignment}{$aliquot_id}{$library_name}{files}{$file_name} = $file_info;
             }
-        } 
+        }
         elsif ($workflow_name eq 'SangerPancancerCgpCnIndelSnvStr') {
 	    # Save VC workflow data without mangling
 	    $participants->{$center_name}{$donor_id}{variant_workflow} = $variant_workflow;

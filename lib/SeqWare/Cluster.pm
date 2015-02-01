@@ -218,7 +218,7 @@ sub seqware_information {
 
     my %cluster_info;
     if ($running < $max_running ) {
-        say $report_file  "\tTHERE ARE $running RUNNING WORKFLOWS WHICH IS LESS THAN MAX OF $max_running, ADDING TO LIST OF AVAILABLE CLUSTERS";
+        say $report_file  "\tTHERE ARE $running RUNNING WORKFLOWS (OF WHICH $failed ARE FAILED) WHICH IS LESS THAN MAX OF $max_running, ADDING TO LIST OF AVAILABLE CLUSTERS";
         for (my $i=0; $i<$max_scheduled_workflows; $i++) {
             my %cluster_metadata = %{$cluster_metadata};
             $cluster_info{"$cluster_name-$i"} = \%cluster_metadata
@@ -275,12 +275,13 @@ sub find_available_clusters {
 
         my ($donor_id, $created_timestamp, $tumour_aliquote_ids);
 
-        if ( ($donor_id, $created_timestamp, $tumour_aliquote_ids) = get_sample_info($report_file, $seqware_run))    {
+        if ( ($donor_id, $created_timestamp, $tumour_aliquote_ids, $sample_id, $merged_id) = get_sample_info($report_file, $seqware_run))    {
 
             my $running_status = { 'pending' => 1,   'running' => 1,
                                    'scheduled' => 1, 'submitted' => 1 };
             $running_status = 'running' if ($running_status->{$run_status});
-            $samples_status->{$run_status}{$tumour_aliquote_ids}{$created_timestamp}{$donor_id} = $run_status;
+            #################$samples_status->{$run_status}{$tumour_aliquote_ids}{$created_timestamp}{$donor_id} = $run_status;
+            $samples_status->{$run_status}{$merged_id}{$created_timestamp}{$sample_id} = $run_status;
         }
      }
 
@@ -304,14 +305,36 @@ sub  get_sample_info {
     my $tumour_aliquot_ids = $parameters{tumourAliquotIds};
     my $tumour_bams = $parameters{tumourBams};
     my $control_bam = $parameters{controlBam};
+    my $sample_id =  $parameters{sample_id};
+    my @urls = split /,/, $parameters{gnos_input_metadata_urls};
     $donor_id //= 'unknown';
+
     say $report_file "\t\t\tDonor ID: $donor_id";
+    say $report_file "\t\t\tSample ID: $sample_id";
     say $report_file "\t\t\tCreated Timestamp: $created_timestamp";
+    my $sorted_urls = join(',', sort @urls);		+    say $report_file "\t\t\tDonor ID: $donor_id";
+    say $report_file "\t\t\tInput URLs: $sorted_urls";
+    say $report_file "\t\t\tCwd: ".$parameters{currentWorkingDir};		+    return ($donor_id, $created_timestamp, $tumour_aliquot_ids);
+    say $report_file "\t\t\tWorkflow Accession: ".$parameters{swAccession}."\n";
     say $report_file "\t\t\tTumour Aliquote Ids: $tumour_aliquot_ids";
     say $report_file "\t\t\tTumour Bams: $tumour_bams";
     say $report_file "\t\t\tTumour Control: $control_bam";
+    # this is used to identify the variant calling run in the local cache file
+    my @mergedIds;
+    foreach my $tumor_id (split (/,/, $parameters{tumourAnalysisIds})) {
+      foreach my $sub_tumor_id (split (/:/, $tumor_id)) {
+        push @mergedIds, $sub_tumor_id;
+      }
+    }
+    foreach my $norm_id (split (/,/, $parameters{controlAnalysisId})) {
+      foreach my $sub_norm_id (split (/:/, $norm_id)) {
+        push @mergedIds, $sub_norm_id;
+      }
+    }
+    my @sortedMergedIds = sort @mergedIds;
+    say $report_file "\t\t\tMerged Sorted IDs: ".join(",", @sortedMergedIds);
 
-    return ($donor_id, $created_timestamp, $tumour_aliquot_ids);
+    return ($donor_id, $created_timestamp, $tumour_aliquot_ids, $sample_id, join(",", @sortedMergedIds));
 }
 
 1;
