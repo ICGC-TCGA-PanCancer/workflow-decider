@@ -77,7 +77,7 @@ Specify the bwa workflow required to proceed to variant calling (eg 2.6.0)
 
 =over
 
-=item --download-gnos-url[=][ ]<gnos_url>
+=item --gnos-download-url[=][ ]<gnos_url>
 
 URL for a GNOS server, e.g. https://gtrepo-ebi.annailabs.com
 
