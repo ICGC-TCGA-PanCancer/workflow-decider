@@ -264,7 +264,7 @@ sub schedule_workflow {
             $workflow_template
             );
     }
-
+die;
    $self->submit_workflow(
        $working_dir,
        $workflow_accession,
