@@ -1,6 +1,6 @@
 =head1 VERSION
 
-Version 0.0.1
+Version 1.1.0
 
 =head1 AUTHOR(S)
 
