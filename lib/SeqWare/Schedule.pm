@@ -66,7 +66,7 @@ sub schedule_samples {
     my $test_mode                   = $args{'test-mode'};
     my $workflow_template           = $args{'workflow-template'};
 
-   print Dumper($args);
+   print Dumper(\%args);
    print "$upload_pem_file\n";
   die;
 
