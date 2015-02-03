@@ -74,8 +74,8 @@ sub create_workflow_ini {
         $test_mode,
         $workflow_template) = @_;
 
-        print Dumper(\@_);
-        print "Herere!!!!!\n";
+        #print Dumper(\@_);
+        #print "Herere!!!!!\n";
 
     # Read in the default data
     my @normal_alignments = keys %{$donor->{normal}};
@@ -115,8 +115,8 @@ sub create_workflow_ini {
     $data->{'seqwareOutputLinesNumber'}    = $seqware_output_lines_number;
     $data->{'testMode'}                    = ($test_mode)? 'true':'false';
 
-    print Dumper($data);
-    die;
+    #print Dumper($data);
+
 
     my $template = "$Bin/../$workflow_template";
 
