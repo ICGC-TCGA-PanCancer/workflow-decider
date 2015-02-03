@@ -37,6 +37,7 @@ get_list($ARGV{'--schedule-whitelist-donor'},  'white', 'donor',  $whitelist);
 get_list($ARGV{'--schedule-blacklist-sample'}, 'black', 'sample', $blacklist);
 get_list($ARGV{'--schedule-blacklist-donor'},  'black', 'donor',  $blacklist);
 
+
 say 'Getting SeqWare Cluster Information';
 my ($cluster_information, $running_sample_ids, $failed_samples, $completed_samples)
           = SeqWare::Cluster->cluster_seqware_information( $report_file,
@@ -45,16 +46,6 @@ my ($cluster_information, $running_sample_ids, $failed_samples, $completed_sampl
                                                   $ARGV{'--workflow-version'},
                                                   $ARGV{'--failure-reports-dir'});
 
-#my $failed_db = Decider::Database->failed_connect();
-
-#print "CLUSTER INFO:\n";
-#print Dumper($cluster_information);
-#print "RUNNING SAMPLES:\n";
-#print Dumper($running_sample_ids);
-#print "FAILED SAMPLES:\n";
-#print Dumper($failed_samples);
-#print "COMPLETED SAMPLES:\n";
-#print Dumper($completed_samples);
 
 say 'Reading in GNOS Sample Information';
 my $gnos_info = GNOS::SampleInformation->new();
@@ -64,24 +55,22 @@ if ($ARGV{'--filter-downloads-by-whitelist'}) {
 if ($ARGV{'--filter-downloads-by-blacklist'}) {
     $gnos_info->filter_by_blacklist(1);
 }
+
+# FIXME: this code (get) actually does NOTHING with the whitelist... still returns all sample info!?!
+# FIXME: it also strips out the project code making the whitelists not uniq?
 my $sample_information = $gnos_info->get( $ARGV{'--working-dir'},
-					  $ARGV{'--gnos-url'},
+					  $ARGV{'--gnos-download-url'},
 					  $ARGV{'--use-cached-xml'},
+                                          $ARGV{'--use-cached-analysis'},
 					  $whitelist,
 					  $blacklist);
 
-#print "DUMPING SAMPLE INFO:\n";
-#print Dumper($sample_information);
+
 
 if (defined($ARGV{'--local-status-cache'})) {
   say 'Combining Previous Results with Local Cache File';
   ($running_sample_ids, $failed_samples, $completed_samples) = SeqWare::Cluster->combine_local_data($running_sample_ids, $failed_samples, $completed_samples, $ARGV{'--local-status-cache'}, $sample_information);
-  #print "RUNNING SAMPLES:\n";
-  #print Dumper($running_sample_ids);
-  #print "FAILED SAMPLES:\n";
-  #print Dumper($failed_samples);
-  #print "COMPLETED SAMPLES:\n";
-  #print Dumper($completed_samples);
+
 }
 
 say 'Scheduling Samples';
