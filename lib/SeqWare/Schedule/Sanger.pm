@@ -52,17 +52,17 @@ sub create_workflow_ini {
     my $self = shift;
     my (
 	$donor,
-	$workflow_version, 
+	$workflow_version,
 	$gnos_download_url,
-        $gnos_upload_url, 
+        $gnos_upload_url,
 	$threads,
         $mem_host_mb_available,
-	$skip_gtdownload, 
-	$skip_gtupload, 
-	$upload_results, 
-	$output_prefix, 
-	$output_dir, 
-	$working_dir, 
+	$skip_gtdownload,
+	$skip_gtupload,
+	$upload_results,
+	$output_prefix,
+	$output_dir,
+	$working_dir,
 	$center_name,
 	$tabix_url,
 	$download_pem_file,
@@ -73,6 +73,9 @@ sub create_workflow_ini {
         $seqware_output_lines_number,
         $test_mode,
         $workflow_template) = @_;
+
+        print Dumper(\@_);
+        print "Herere!!!!!\n";
 
     # Read in the default data
     my @normal_alignments = keys %{$donor->{normal}};
@@ -104,13 +107,16 @@ sub create_workflow_ini {
     $data->{'uploadPemFile'}               = $upload_pem_file;
     $data->{'gnosServer'}                  = $gnos_download_url;
     $data->{'uploadServer'}                = $gnos_upload_url;
-    $data->{'donor_id'}                    = $donor->{donor_id};    
-    $data->{'memHostMbAvailable'}          = $mem_host_mb_available;  
+    $data->{'donor_id'}                    = $donor->{donor_id};
+    $data->{'memHostMbAvailable'}          = $mem_host_mb_available;
     $data->{'cleanup'}                     = ($cleanup)? 'true':'false';
     $data->{'studyRefnameOverride'}        = $study_refname_override;
     $data->{'analysisCenterOverride'}      = $analysis_center_override;
     $data->{'seqwareOutputLinesNumber'}    = $seqware_output_lines_number;
     $data->{'testMode'}                    = ($test_mode)? 'true':'false';
+
+    print Dumper($data);
+    die;
 
     my $template = "$Bin/../$workflow_template";
 
