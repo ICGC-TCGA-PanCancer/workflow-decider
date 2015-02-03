@@ -6,11 +6,13 @@ This is the decider for the PanCancer Variant Calling workfow.
 
 
 ## Installing dependencies
+
 A shell script named 'install' will install all of the dependencies.
 
-$ sudo bash install
+           sudo bash install
 
 ## Configuration
+
 ./conf/decider.ini Is an example decider config file that provides the decider with all the parameters that it needs. 
 ./conf/ini contains seqware ini templates fore submitting workflows to SeqWare. This template file is set in thee decider ini with the parameterfile is pointed to in the decider.ini file (section: workflow parameter: workflow-template). If need be this is where you will adjust the memory settings for the workflow. 
 
@@ -19,25 +21,23 @@ Place donor and sample-level white or black lists in the appropriate directory.
 For example a white list of donor IDs is placed in the whitelist directory, then
 specified as follows:
 
-whitelist-donor=donors_I_want.txt
-
-Other options:
-blacklist-donor=
-whitelist-sample=
-blacklist-sample=
+           whitelist-donor=donors_I_want.txt
+           
+           Other options:
+           blacklist-donor=
+           whitelist-sample=
+           blacklist-sample=
 
 Each list is a text file with one donor or sample ID/line
 
 An script has been created for creating these files from a github repo (https://github.com/ICGC-TCGA-PanCancer/pcawg-operations):
 
-eg. 
            perl bin/update-whitelist.pl --pawgc-repo-dir /home/ubuntu/architecture2/ --whitelist-target-path=/home/ubuntu/architecture2/workflow-decider/whitelist/ebi-whitelist.txt --cloud-env=ebi --gnos-repo=ebi --blacklist-target-path=/home/ubuntu/architecture2/workflow-decider/blacklist/blacklist.txt
 
 The cloud environment is the same name as the folder in the repo that you are getting your whitelist from and the gnos-repo is exactly the sample as the name at the end of the file in the repo (eg. from_ebi.txt). 
 
 Place the names of the two files into your decider.ini.
 
-eg. 
            whitelist-donor=etri-whitelist-bsc.txt
            blacklist-donor=blacklist.txt
 
@@ -48,11 +48,13 @@ eg.
 Before you run the decider make sure to update the whitelist files from the repository.           
 
 ## Testing
+
 For testing purposes you can set the following flag to true: skip-scheduling=true
 
 Look at the logs to determine if the decider is doing things as you would expect.
 
 #Flags
+
 All settings can be maind in the devider.ini file. Several of the parameters that are in the ini files can be overwritten with command line flags. The following descibes these flags:
 
 <pre>
