@@ -34,7 +34,7 @@ sub get {
     
     # Required
     my %string_flags_to_ini_keys = (
-           '--seqware-setttings'            => 'general.seqware-settings',
+           '--seqware-settings'            => 'general.seqware-settings',
            '--report'                       => 'general.report',
            '--working-dir'                  => 'general.working-dir',
            '--bwa-workflow-version'         => 'general.bwa-workflow-version',  
