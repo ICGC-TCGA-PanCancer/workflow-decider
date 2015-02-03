@@ -265,7 +265,7 @@ sub schedule_workflow {
             );
     }
 
-   $self->submit_workflow(
+    $self->submit_workflow(
        $working_dir,
        $workflow_accession,
        $host,
