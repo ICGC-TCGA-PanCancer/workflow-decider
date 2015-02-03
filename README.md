@@ -6,53 +6,99 @@ This is the decider for the PanCancer Variant Calling workfow.
 
 
 ## Installing dependencies
+
 A shell script named 'install' will install all of the dependencies.
 
-$ sudo bash install
+           sudo bash install
 
 ## Configuration
-./conf/decider.ini contains the decoder parameters
-./conf/ini contains templates for workflow setting and ini files
+
+./conf/decider.ini Is an example decider config file that provides the decider with all the parameters that it needs. 
+./conf/ini contains seqware ini templates fore submitting workflows to SeqWare. This template file is set in thee decider ini with the parameterfile is pointed to in the decider.ini file (section: workflow parameter: workflow-template). If need be this is where you will adjust the memory settings for the workflow. 
 
 ## White/Black lists
 Place donor and sample-level white or black lists in the appropriate directory.
 For example a white list of donor IDs is placed in the whitelist directory, then
 specified as follows:
 
-whitelist-donor=donors_I_want.txt
-
-Other options:
-blacklist-donor=
-whitelist-sample=
-blacklist-sample=
+           whitelist-donor=donors_I_want.txt
+           
+           Other options:
+           blacklist-donor=
+           whitelist-sample=
+           blacklist-sample=
 
 Each list is a text file with one donor or sample ID/line
 
+An script has been created for creating these files from a github repo (https://github.com/ICGC-TCGA-PanCancer/pcawg-operations):
+
+           perl bin/update-whitelist.pl --pawgc-repo-dir /home/ubuntu/architecture2/ --whitelist-target-path=/home/ubuntu/architecture2/workflow-decider/whitelist/ebi-whitelist.txt --cloud-env=ebi --gnos-repo=ebi --blacklist-target-path=/home/ubuntu/architecture2/workflow-decider/blacklist/blacklist.txt
+
+The cloud environment is the same name as the folder in the repo that you are getting your whitelist from and the gnos-repo is exactly the sample as the name at the end of the file in the repo (eg. from_ebi.txt). 
+
+Place the names of the two files into your decider.ini.
+
+           whitelist-donor=etri-whitelist-bsc.txt
+           blacklist-donor=blacklist.txt
+
+## Running the decider
+
+           perl bin/sanger_workflow_decider.pl --decider-config=conf/<decider-file>
+
+Before you run the decider make sure to update the whitelist files from the repository.           
+
 ## Testing
-There is a shell script 'sanger_decider_test.sh' that will run the decider through its paces.
 
-# To test on itri GNOS repo
-bash sanger_workflow_test_itri.sh
+For testing purposes you can set the following flag to true: skip-scheduling=true
 
-# To test on osdc GNOS repo
-bash sanger_workflow_test_osdc.sh
+Look at the logs to determine if the decider is doing things as you would expect.
+
+#Flags
+
+All settings can be maind in the devider.ini file. Several of the parameters that are in the ini files can be overwritten with command line flags. The following descibes these flags:
 
 <pre>
-Usage:
-           sanger_workflow_decider.pl --decider-config<decider_path> [options]
-           sanger_workflow_decider.pl --help
-           sanger_workflow_decider.pl --version
+VERSION
+     This document refers to sanger_workflow_decider.pl version 1.1.0
 
-Required:
+AUTHOR(S)
+    Brian O'Connor, Adam Wright, Sheldon McKay
+
+    --usage
+    --help
+    --man
+        Print the usual program information
+
+DESCRIPTION
+    A tool for identifying samples ready for alignment, scheduling on
+    clusters, and monitoring for completion.
+
+NAME
+     sanger_workflow_decider.pl - SeqWare
+
+
+REQUIRED
     --decider-config[=][ ]<decider_path>
         The path to the file containing the default settings for the decider.
         If another option is chosen via command line option the command line
         setting will take precedence.
 
-Options:
+OPTIONS
     --seqware-clusters[=][ ]<file>
         JSON file that describes the clusters available to schedule workflows
         to. As a reference there is a cluster.json file in the conf folder.
+
+    --local-status-cache[=][ ]<file>
+        Tab-seperated file describing the previous aliquot-ids that were
+        scheduled, completed, failed, or running. This is not particularly
+        workflow-agnostic but it's used when working with Youxia since VMs can
+        be retired at any time. By having the decider cache these knowledge
+        about what has been run previously and failed is retained.
+
+    --failure-reports-dir[=][ ]<failure-report-dir>
+        This is the directory to which failures reports will be logged. This
+        is extremely useful if the hosts workflow are running on are ephemeral
+        and disappear often.
 
     --workflow-name[=][ ]<workflow_name>
         Specify the variant caller workflow name to be run (eq
@@ -66,7 +112,7 @@ Options:
         Specify the bwa workflow required to proceed to variant calling (eg
         2.6.0)
 
-    --gnos-url[=][ ]<gnos_url>
+    --gnos-download-url[=][ ]<gnos_url>
         URL for a GNOS server, e.g. https://gtrepo-ebi.annailabs.com
 
     --gnos-upload-url[=][ ]<gnos_upload_url>
@@ -76,8 +122,8 @@ Options:
         A place for temporary ini and settings files
 
     --use-cached-analysis
-        Use the previously downloaded list of files from GNOS that are marked
-        in the live state (only useful for testing).
+        A flag indicating that previously download analysis xml files for each
+        analysis event should not be downloaded again
 
     --seqware-settings[=][ ]<seqware_settings>
         The template seqware settings file
@@ -86,14 +132,17 @@ Options:
         The report file name that the results will be placed in by the decider
 
     --use-cached-xml
-        A flag indicating that previously download xml files for each analysis
-        file should not be downloaded again
+        Use the previously downloaded list of files from GNOS that are marked
+        in the live state (only useful for testing).
 
     --tabix-url[=][ ]<tabix_url>
         The URL of the tabix server
 
-    --pem-file[=][ ]<path_to_pem_file>
-        Path to the Amazon EC2 key pair file
+    --gtdownload-pem-file[=][ ]<path_to_download_pem_file>
+        Path to pem file on worker node that is used for dowloading from GNOS
+
+    --gtupload-pem-file[=][ ]<path_to_upload_pem_file>
+        Path to pem file on worker node that is used for uploading to GNOS
 
     --lwp-download-timeout[=][ ]<wait_time>
         This flag is used to specify the amount of time lwp download should
@@ -112,15 +161,16 @@ Options:
     --schedule-whitelist-donor[=][ ]<filename>
         This flag indicates a file that contains a list of donor ids to be
         analyzed. This file should be placed in the whitelist folder and
-        should have one donor id per line.
+        should have one "project_code\tdonor_id" per line.
 
     --schedule-blacklist-sample[=][ ]<filename>
         This flag indicates samples that should not be run. The file should be
-        placed in the blacklist folder and should have on sample id per line.
+        placed in the blacklist folder and should have one sample id per line.
 
     --schedule-blacklist-donor[=][ ]<filename>
         This flag indicates donors that should not be run. The file should be
-        placed in the blacklist folder and should have on donor id per line.
+        placed in the blacklist folder and should have one
+        "project_code\tdonor_id" per line.
 
     --schedule-sample[=][ ]<aliquot_id>
         For only running one particular sample based on its uuid
@@ -138,9 +188,9 @@ Options:
     --cores-addressable[=][ ]<number of cores>
         The number of cores that can be used for the analysis
 
-    --workflow-skip-scheduling
-        Indicates no workflow should be scheduled, just summary of what would
-        have been run.
+    --skip-scheduling
+        Indicates workflows should not be scheduled, just summary of what
+        would have been run.
 
     --workflow-upload-results
         A flag indicating the resulting VCF files and metadata should be
@@ -164,5 +214,6 @@ Options:
 
     --workflow-input-prefix[=][ ]<prefix>
         if --skip-gtdownload is set, this is the input bam file prefix
+
 </pre>
 
