@@ -74,9 +74,6 @@ sub create_workflow_ini {
         $test_mode,
         $workflow_template) = @_;
 
-        #print Dumper(\@_);
-        #print "Herere!!!!!\n";
-
     # Read in the default data
     my @normal_alignments = keys %{$donor->{normal}};
     my @tumor_alignments  = keys %{$donor->{tumor}};
@@ -114,8 +111,6 @@ sub create_workflow_ini {
     $data->{'analysisCenterOverride'}      = $analysis_center_override;
     $data->{'seqwareOutputLinesNumber'}    = $seqware_output_lines_number;
     $data->{'testMode'}                    = ($test_mode)? 'true':'false';
-
-    #print Dumper($data);
 
 
     my $template = "$Bin/../$workflow_template";

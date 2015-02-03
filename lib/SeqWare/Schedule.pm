@@ -227,9 +227,7 @@ sub schedule_workflow {
 
     my $donor_id = $donor->{donor_id};
 
-    #if ($cluster_found or $skip_scheduling) {
-
-    if (1) {
+    if ($cluster_found or $skip_scheduling) {
         system("mkdir -p $Bin/../$working_dir/ini");
         $self->create_workflow_settings(
             $donor,
@@ -266,7 +264,7 @@ sub schedule_workflow {
             $workflow_template
             );
     }
-die;
+
    $self->submit_workflow(
        $working_dir,
        $workflow_accession,
