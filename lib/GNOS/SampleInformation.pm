@@ -35,7 +35,7 @@ sub get {
 
     my $data_xml_path = "$Bin/../$working_dir/xml/data.xml";
     my $cmd = "mkdir -p $working_dir/xml; cgquery -s $gnos_url -o $data_xml_path";
-    $cmd .= ($gnos_url =~ /cghub.ucsc.edu/)? " 'study=PCAWG\ 2.0&state=live'":" 'study=*&state=live'";
+    $cmd .= ($gnos_url =~ /cghub.ucsc.edu/)? " 'study=PCAWG\\ 2.0&state=live'":" 'study=*&state=live'";
 
     say $parse_log "cgquery command: $cmd";
 
