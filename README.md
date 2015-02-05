@@ -9,7 +9,8 @@ This is the decider for the PanCancer Variant Calling workfow.
 
 A shell script named 'install' will install all of the dependencies.
 
-           sudo bash install
+           cd install
+           ANSIBLE_HOST_KEY_CHECKING=False  ansible-playbook -i inventory site.yml
 
 ## Configuration
 
@@ -34,7 +35,7 @@ An script has been created for creating these files from a github repo (https://
 
            perl bin/update-whitelist.pl --pawgc-repo-dir /home/ubuntu/architecture2/ --whitelist-target-path=/home/ubuntu/architecture2/workflow-decider/whitelist/ebi-whitelist.txt --cloud-env=ebi --gnos-repo=ebi --blacklist-target-path=/home/ubuntu/architecture2/workflow-decider/blacklist/blacklist.txt
 
-The cloud environment is the same name as the folder in the repo that you are getting your whitelist from and the gnos-repo is exactly the sample as the name at the end of the file in the repo (eg. from_ebi.txt). 
+The cloud environment is the same name as the folder in the repo that you are getting your whitelist from and the gnos-repo is exactly the sample as the name at the end of the file in the repo (eg. from\_ebi.txt). 
 
 Place the names of the two files into your decider.ini.
 
