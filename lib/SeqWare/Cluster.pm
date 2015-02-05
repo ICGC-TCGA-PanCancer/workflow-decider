@@ -49,7 +49,8 @@ sub combine_local_data {
               # keeping a count so eventually can declare these "lost" and retry them
               if (defined($running_sample_ids->{$a[0]}{$a[1]}{$a[2]})) {
                 $count_since_last_seen->{$a[0]}{$a[1]}{$a[2]} = 0;
-              } else {
+              } elsif(!defined($failed_samples->{$a[0]}{$a[1]}{$a[2]})
+                  && !defined($completed_samples->{$a[0]}{$a[1]}{$a[2]})) {
                 $count_since_last_seen->{$a[0]}{$a[1]}{$a[2]} = $a[6] + 1;
                 # TODO: make this a configurable option
                 if ($count_since_last_seen->{$a[0]}{$a[1]}{$a[2]} > 5) {

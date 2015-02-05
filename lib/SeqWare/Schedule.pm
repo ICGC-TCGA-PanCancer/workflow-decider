@@ -101,7 +101,7 @@ sub schedule_samples {
                     my @need_version = split '.', $workflow_version;
                     # FIXME: not sure this is going to work when we have > workflow versions... seems like it will cause everything to re-run when 1.1.0 comes out! Not sure we want that...
                     my $skip_donor = $have_version[0] >= $need_version[0] && $have_version[1] >= $need_version[1];
-                    if ($skip_donor) {
+                    if ($skip_donor && !$generate_all_ini_files) {
                         say $report_file "Skipping donor $donor_id because $workflow_name has already been run";
                         next DONOR;
                         }
@@ -660,7 +660,7 @@ sub schedule_donor {
             $report_file,
             $skip_scheduling,
             $running_samples,
-            $donor, $center_name
+            $donor, $center_name, $generate_all_ini_files
         );
 }
 
@@ -670,6 +670,10 @@ sub should_be_scheduled {
     my $skip_scheduling = shift;
     my $running_samples = shift;
     my $donor = shift;
+    my $generate_all_ini_files = shift;
+
+    # just return true if we want the ini
+    return(1) if ($generate_all_ini_files);
 
     # running_samples here actually contains running, failed, and completed
     my $prev_failed_running_complete = $self->previously_failed_running_or_completed($donor, $running_samples);

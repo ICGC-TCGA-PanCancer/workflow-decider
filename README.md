@@ -7,7 +7,7 @@ This is the decider for the PanCancer Variant Calling workfow.
 
 ## Installing dependencies
 
-A shell script named 'install' will install all of the dependencies.
+A shell script named 'install' will install all of the dependencies for Ubuntu 12.04.
 
            cd install
            ANSIBLE_HOST_KEY_CHECKING=False  ansible-playbook -i inventory site.yml
