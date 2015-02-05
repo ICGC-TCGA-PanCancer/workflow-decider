@@ -65,10 +65,7 @@ sub schedule_samples {
     my $seqware_output_lines_number = $args{'seqware-output-lines-number'};
     my $test_mode                   = $args{'test-mode'};
     my $workflow_template           = $args{'workflow-template'};
-
-   #print Dumper(\%args);
-   #print "$upload_pem_file\n";
-
+    my $generate_all_ini_files      = $args{'generate-all-ini-files'};
 
     say $report_file "SAMPLE SCHEDULING INFORMATION\n";
 
@@ -169,7 +166,8 @@ sub schedule_samples {
                                       $analysis_center_override,
                                       $seqware_output_lines_number,
                                       $test_mode,
-                                      $workflow_template);
+                                      $workflow_template,
+                                      $generate_all_ini_files);
             }
             elsif (@whitelist > 0) {
                 # FIXME: can remove this since I added the check earlier in the loop
@@ -209,7 +207,8 @@ sub schedule_workflow {
          $analysis_center_override,
          $seqware_output_lines_number,
          $test_mode,
-         $workflow_template
+         $workflow_template,
+         $generate_all_ini_files
         ) = @_;
 
     my $cluster = (keys %{$cluster_information})[0];
@@ -227,7 +226,7 @@ sub schedule_workflow {
 
     my $donor_id = $donor->{donor_id};
 
-    if ($cluster_found or $skip_scheduling) {
+    if ($cluster_found or $skip_scheduling or $generate_all_ini_files) {
         system("mkdir -p $Bin/../$working_dir/ini");
         $self->create_workflow_settings(
             $donor,
@@ -275,7 +274,7 @@ sub schedule_workflow {
        $url,
        $center_name,
        $donor_id
-       );
+       ) unless ($generate_all_ini_files);
 
     delete $cluster_information->{$cluster} if ($cluster_found);
 }
@@ -377,7 +376,8 @@ sub schedule_donor {
          $analysis_center_override,
          $seqware_output_lines_number,
          $test_mode,
-         $workflow_template
+         $workflow_template,
+         $generate_all_ini_files
         ) = @_;
 
     say $report_file "GOING TO SCHEDULE";
@@ -653,7 +653,8 @@ sub schedule_donor {
                               $analysis_center_override,
                               $seqware_output_lines_number,
                               $test_mode,
-                              $workflow_template
+                              $workflow_template,
+                              $generate_all_ini_files
         )
         if $self->should_be_scheduled(
             $report_file,

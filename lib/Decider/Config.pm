@@ -77,7 +77,8 @@ sub get {
             '--skip-scheduling'            => 'scheduling.skip-scheduling',
             '--workflow-upload-results'    => 'workflow.upload-results',
             '--workflow-cleanup'           => 'workflow.cleanup',
-            '--test-mode'                  => 'workflow.testMode'
+            '--test-mode'                  => 'workflow.testMode',
+            '--generate-all-ini-files'     => 'general.generate-all-ini-files'
     );
     
     my $ini_key;
