@@ -35,7 +35,7 @@ sub get {
 
     my $data_xml_path = "$Bin/../$working_dir/xml/data.xml";
     my $cmd = "mkdir -p $working_dir/xml; cgquery -s $gnos_url -o $data_xml_path";
-    $cmd .= ($gnos_url =~ /cghub.ucsc.edu/)? " 'study=PCAWG\ 2.0&state=live'":" 'study=*&state=live'";
+    $cmd .= ($gnos_url =~ /cghub.ucsc.edu/)? " 'study=PCAWG\\ 2.0&state=live'":" 'study=*&state=live'";
 
     say $parse_log "cgquery command: $cmd";
 
@@ -206,7 +206,7 @@ sub get {
         my $sample_id = $submitter_sample_id;
 
 	# make sure the donor ID is unique for white/blacklist purposes;
-        $dcc_project_code //= 'unkonwn';
+        $dcc_project_code //= 'unknown';
         $submitter_donor_id //= 'unknown';
 	my $donor_id =  join('-',$dcc_project_code,$submitter_donor_id);
 
@@ -254,8 +254,8 @@ sub get {
 	    say $parse_log "\tNO WORKFLOW INFORMATION; analysis skipped";
 	    next;
 	}
-
-        if ($workflow_name eq 'Workflow_Bundle_BWA') {
+        # UCSC's workflow name ends with '(UCSC Implementation)'
+        if ($workflow_name =~ /Workflow_Bundle_BWA/) {
             # don't save the analysis if unaligned
             if ($bam_type eq 'unaligned') {
                 say $parse_log "\tUNALIGNED BAM; analysis skipped";

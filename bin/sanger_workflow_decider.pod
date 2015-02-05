@@ -1,6 +1,6 @@
 =head1 VERSION
 
-Version 0.0.1
+Version 1.1.0
 
 =head1 AUTHOR(S)
 
@@ -54,6 +54,10 @@ file in the conf folder.
 =item --local-status-cache[=][ ]<file>
 
 Tab-seperated file describing the previous aliquot-ids that were scheduled, completed, failed, or running. This is not particularly workflow-agnostic but it's used when working with Youxia since VMs can be retired at any time.  By having the decider cache these knowledge about what has been run previously and failed is retained.
+
+=item --generate-all-ini-files
+
+Use this flag to generate the ini files for all of the samples in the GNOS repo specified to be downloaded from. 
 
 =item --failure-reports-dir[=][ ]<failure-report-dir>
 
