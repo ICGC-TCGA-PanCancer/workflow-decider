@@ -1,2 +1,2 @@
-[decider]
-localhost	ansible_connection=local
+[bindle]
+localhost      ansible_connection=local
