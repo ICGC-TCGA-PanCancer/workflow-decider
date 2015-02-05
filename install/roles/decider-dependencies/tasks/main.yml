@@ -1,17 +1,11 @@
 ---
 
 - name: Install Bindle dependencies
-  sudo: True
   apt: name={{ item }} state=latest update_cache=yes
   with_items:
     - liblz-dev
     - zlib1g-dev
     - samtools
-    - libboost-filesystem1.48.0
-    - libboost-program-options1.48.0
-    - libboost-regex1.48.0
-    - libboost-system1.48.0
-    - libicu48
     - libxerces-c3.1
     - libxqilla6
     - gdebi
@@ -32,39 +26,56 @@
     - libberkeleydb-perl
     - libtemplate-perl
 
-- name: Download GeneTorrent (common)
+- name: Install Bindle dependencies for Trusty
+  apt: name={{ item }} state=latest update_cache=yes
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'trusty'
+  with_items:
+    - libboost-filesystem1.54.0
+    - libboost-program-options1.54.0
+    - libboost-regex1.54.0 
+    - libboost-system1.54.0 
+    - libicu52
+
+- name: Install Bindle dependencies for Precise
+  apt: name={{ item }} state=latest update_cache=yes
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'precise'
+  with_items:
+    - libboost-filesystem1.48.0
+    - libboost-program-options1.48.0
+    - libboost-regex1.48.0
+    - libboost-system1.48.0
+    - libicu48
+
+
+- name: Java | Get Java
   get_url:
-    dest=/tmp
-    url=http://cghub.ucsc.edu/software/downloads/GeneTorrent/3.8.5/genetorrent-common_3.8.5-ubuntu2.91-12.04_amd64.deb 
+    dest: '/tmp/oracle-j2sdk1.7_1.7.0+update25-1_amd64.deb'
+    url: 'http://archive.cloudera.com/cm5/ubuntu/lucid/amd64/cm/pool/contrib/o/oracle-j2sdk1.7/oracle-j2sdk1.7_1.7.0+update25-1_amd64.deb'
 
-- name: Download GeneTorrent (download)
-  get_url:
-    dest=/tmp
-    url=http://cghub.ucsc.edu/software/downloads/GeneTorrent/3.8.5/genetorrent-download_3.8.5-ubuntu2.91-12.04_amd64.deb
+- name: Java | Install Java
+  command: dpkg --skip-same-version -i /tmp/oracle-j2sdk1.7_1.7.0+update25-1_amd64.deb
+  register: dpkg_result
+  changed_when: "dpkg_result.stdout.startswith('Selecting')"
 
-- name: Download GeneTorrent (upload)
-  get_url:
-    dest=/tmp
-    url=http://cghub.ucsc.edu/software/downloads/GeneTorrent/3.8.5/genetorrent-upload_3.8.5-ubuntu2.91-12.04_amd64.deb
+- name: Java | Set up Java
+  command: 'update-alternatives --install /usr/bin/java java /usr/lib/jvm/java-7-oracle-cloudera/jre/bin/java 2000'
+  when: dpkg_result.changed
 
-- Name: Install GeneTorrent 
-  command: gdebi --n /tmp/genetorrent-common_3.8.5-ubuntu2.91-12.04_amd64.deb /tmp/genetorrent-download_3.8.5-ubuntu2.91-12.04_amd64.deb /tmp/genetorrent-upload_3.8.5-ubuntu2.91-12.04_amd64.deb
-  sudo: True
-
-- Name: Download Oracle Java
-  dest=/tmp
-  get_url: http://archive.cloudera.com/cm5/ubuntu/lucid/amd64/cm/pool/contrib/o/oracle-j2sdk1.7/oracle-j2sdk1.7_1.7.0+update25-1_amd64.deb
+- name: Java | Set up Java
+  command: 'update-alternatives --set java /usr/lib/jvm/java-7-oracle-cloudera/jre/bin/java'
+  when: dpkg_result.changed
   
-- Name: Install Oracle Java
-  command: dpebi -i /tmp/oracle-j2sdk1.7_1.7.0+update25-1_amd64.deb
+- name: Java | Set up Jar
+  command: 'update-alternatives --install /usr/bin/jar jar /usr/lib/jvm/java-7-oracle-cloudera/bin/jar 2000'
+  when: dpkg_result.changed
 
-- Name: Update Alternatvies (install)
-  command: update-alternatives --install /usr/bin/java java /usr/lib/jvm/java-7-oracle-cloudera/jre/bin/java 2000
-  sudo: True
- 
-- name: Update Alterantives (set)
-  command: update-alternatives --set java /usr/lib/jvm/java-7-oracle-cloudera/jre/bin/java 
+- name: Java | Set up Jar
+  command: 'update-alternatives --set jar /usr/lib/jvm/java-7-oracle-cloudera/bin/jar'
+  when: dpkg_result.changed
 
-- name: Set Jave Environment Variable for Java
-  command: echo 'JAVA_HOME=/usr/lib/jvm/java-7-oracle-cloudera' | tee -a /etc/environment
-  sudo: True
+- name: Java | Set JAVA_HOME
+  lineinfile: 
+    line: 'JAVA_HOME=/usr/lib/jvm/java-7-oracle-cloudera'
+    dest: /etc/environment
+    state: present
+    create: yes

@@ -2,5 +2,16 @@
 ---
 # setup Decider
 - hosts: decider
-roles:
-- { role: decider-dependencies }
+  sudo: true
+  roles:
+   - { role: decider-dependencies }
+
+- hosts: decider
+  sudo: true
+  roles:
+   - { role: genetorrent_precise,  when: ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'precise'}
+
+- hosts: decider
+  sudo: true
+  roles:
+   - { role: genetorrent_trusty, when: ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'trusty'}
