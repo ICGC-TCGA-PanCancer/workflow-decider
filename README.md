@@ -1,4 +1,4 @@
-# BWA Decider
+# Workflow Decider
 
 ## About
 
@@ -7,9 +7,13 @@ This is the decider for the PanCancer Variant Calling workfow.
 
 ## Installing dependencies
 
-A shell script named 'install' will install all of the dependencies.
+A shell script named 'install' will install all of the dependencies for Ubuntu 12.04.
 
-           sudo bash install
+    sudo bash install
+
+If you use Ubuntu 14.04 instead use the following.
+
+    sudo bash install_ubuntu_14
 
 ## Configuration
 
