@@ -1,4 +1,4 @@
-# BWA Decider
+# Workflow Decider
 
 ## About
 
