@@ -1,0 +1,81 @@
+---
+
+- name: Install Bindle dependencies
+  apt: name={{ item }} state=latest update_cache=yes
+  with_items:
+    - liblz-dev
+    - zlib1g-dev
+    - samtools
+    - libxerces-c3.1
+    - libxqilla6
+    - gdebi
+    - libxml-simple-perl
+    - libcommon-sense-perl
+    - libipc-system-simple-perl
+    - libgetopt-euclid-perl
+    - libfile-slurp-perl
+    - libxml-dom-perl
+    - libconfig-simple-perl
+    - libdata-dump-perl
+    - libcapture-tiny-perl
+    - libcarp-always-perl
+    - libjson-perl
+    - libxml-libxml-perl
+    - libxml-libxml-simple-perl
+    - libdb4.8
+    - libberkeleydb-perl
+    - libtemplate-perl
+
+- name: Install Bindle dependencies for Trusty
+  apt: name={{ item }} state=latest update_cache=yes
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'trusty'
+  with_items:
+    - libboost-filesystem1.54.0
+    - libboost-program-options1.54.0
+    - libboost-regex1.54.0 
+    - libboost-system1.54.0 
+    - libicu52
+
+- name: Install Bindle dependencies for Precise
+  apt: name={{ item }} state=latest update_cache=yes
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'precise'
+  with_items:
+    - libboost-filesystem1.48.0
+    - libboost-program-options1.48.0
+    - libboost-regex1.48.0
+    - libboost-system1.48.0
+    - libicu48
+
+
+- name: Java | Get Java
+  get_url:
+    dest: '/tmp/oracle-j2sdk1.7_1.7.0+update25-1_amd64.deb'
+    url: 'http://archive.cloudera.com/cm5/ubuntu/lucid/amd64/cm/pool/contrib/o/oracle-j2sdk1.7/oracle-j2sdk1.7_1.7.0+update25-1_amd64.deb'
+
+- name: Java | Install Java
+  command: dpkg --skip-same-version -i /tmp/oracle-j2sdk1.7_1.7.0+update25-1_amd64.deb
+  register: dpkg_result
+  changed_when: "dpkg_result.stdout.startswith('Selecting')"
+
+- name: Java | Set up Java
+  command: 'update-alternatives --install /usr/bin/java java /usr/lib/jvm/java-7-oracle-cloudera/jre/bin/java 2000'
+  when: dpkg_result.changed
+
+- name: Java | Set up Java
+  command: 'update-alternatives --set java /usr/lib/jvm/java-7-oracle-cloudera/jre/bin/java'
+  when: dpkg_result.changed
+  
+- name: Java | Set up Jar
+  command: 'update-alternatives --install /usr/bin/jar jar /usr/lib/jvm/java-7-oracle-cloudera/bin/jar 2000'
+  when: dpkg_result.changed
+
+- name: Java | Set up Jar
+  command: 'update-alternatives --set jar /usr/lib/jvm/java-7-oracle-cloudera/bin/jar'
+  when: dpkg_result.changed
+
+- name: Java | Set JAVA_HOME
+  lineinfile: 
+    line: 'JAVA_HOME=/usr/lib/jvm/java-7-oracle-cloudera'
+    dest: /etc/environment
+    state: present
+    create: yes

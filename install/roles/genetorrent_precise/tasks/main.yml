@@ -1,0 +1,17 @@
+- name: Download GeneTorrent (common)
+  get_url:
+    dest=/tmp
+    url=http://cghub.ucsc.edu/software/downloads/GeneTorrent/3.8.5/genetorrent-common_3.8.5-ubuntu2.91-12.04_amd64.deb 
+
+- name: Download GeneTorrent (download)
+  get_url:
+    dest=/tmp
+    url=http://cghub.ucsc.edu/software/downloads/GeneTorrent/3.8.5/genetorrent-download_3.8.5-ubuntu2.91-12.04_amd64.deb
+
+- name: Download GeneTorrent (upload)
+  get_url:
+    dest=/tmp
+    url=http://cghub.ucsc.edu/software/downloads/GeneTorrent/3.8.5/genetorrent-upload_3.8.5-ubuntu2.91-12.04_amd64.deb
+
+- name: Install GeneTorrent 
+  command: gdebi --n /tmp/genetorrent-common_3.8.5-ubuntu2.91-12.04_amd64.deb /tmp/genetorrent-download_3.8.5-ubuntu2.91-12.04_amd64.deb /tmp/genetorrent-upload_3.8.5-ubuntu2.91-12.04_amd64.deb

@@ -49,7 +49,7 @@ sub get {
     say $parse_log '';
 
     my @donor_whitelist;
-    if ($whitelist) {
+    if ($whitelist and ( keys %{$whitelist})) {
 	@donor_whitelist = @{$whitelist->{donor}};
 	for (@donor_whitelist) {
 	    #s/^\S+\s+//;
@@ -58,7 +58,7 @@ sub get {
 	#say STDERR "Downloading only donor whitelist analysis results" if @donor_whitelist > 0;
     }
     my @donor_blacklist;
-    if ($blacklist) {
+    if ($blacklist and (keys %{$blacklist}) ) {
 	@donor_blacklist = @{$blacklist->{donor}};
 	for (@donor_blacklist) {
     #s/^\S+\s+//;
