@@ -1,0 +1,6 @@
+
+---
+# setup Decider
+- hosts: decider
+roles:
+- { role: decider-dependencies }
