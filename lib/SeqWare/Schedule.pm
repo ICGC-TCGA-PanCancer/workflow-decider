@@ -670,7 +670,7 @@ sub should_be_scheduled {
     my $skip_scheduling = shift;
     my $running_samples = shift;
     my $donor = shift;
-    my $cent
+    my $center_name = shift;
     my $generate_all_ini_files = shift;
 
     say $report_file "GENERATE ALL INI?: $generate_all_ini_files\n";
