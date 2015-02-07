@@ -672,6 +672,8 @@ sub should_be_scheduled {
     my $donor = shift;
     my $generate_all_ini_files = shift;
 
+    say $report_file "GENERATE ALL INI?: $generate_all_ini_files\n";
+
     # just return true if we want the ini
     return(1) if ($generate_all_ini_files);
 
