@@ -45,6 +45,13 @@ sub combine_local_data {
             chomp;
             next if (/^#/);
             my @a = split /\t/;
+            my @id_arr;
+            foreach my $aid (split /,/, $a[0]) {
+              foreach my $bid (split /:/, $aid) {
+                push @id_arr, $bid;
+              }
+            }
+            $a[0] = sort @id_arr;
             if ($a[3] eq 'running') {
               # keeping a count so eventually can declare these "lost" and retry them
               if (defined($running_sample_ids->{$a[0]}{$a[1]}{$a[2]})) {
