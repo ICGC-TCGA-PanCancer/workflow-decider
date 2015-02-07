@@ -51,7 +51,7 @@ sub combine_local_data {
                 push @id_arr, $bid;
               }
             }
-            $a[0] = sort @id_arr;
+            $a[0] = join (",", sort @id_arr);
             if ($a[3] eq 'running') {
               # keeping a count so eventually can declare these "lost" and retry them
               if (defined($running_sample_ids->{$a[0]}{$a[1]}{$a[2]})) {
