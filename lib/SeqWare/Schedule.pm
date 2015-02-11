@@ -670,13 +670,17 @@ sub should_be_scheduled {
     my $skip_scheduling = shift;
     my $running_samples = shift;
     my $donor = shift;
+    my $center_name = shift;
     my $generate_all_ini_files = shift;
+
+    say $report_file "GENERATE ALL INI?: $generate_all_ini_files\n";
 
     # just return true if we want the ini
     return(1) if ($generate_all_ini_files);
 
     # running_samples here actually contains running, failed, and completed
     my $prev_failed_running_complete = $self->previously_failed_running_or_completed($donor, $running_samples);
+
     if ($prev_failed_running_complete) {
     say $report_file "\t\tCONCLUSION: NOT SCHEDULING FOR VCF, PREVIOUSLY FAILED, RUNNING, OR COMPLETED";
       #print "\t\t\tCONCLUSION: NOT SCHEDULING FOR VCF, PREVIOUSLY FAILED, RUNNING, OR COMPLETED\n";
@@ -716,9 +720,9 @@ sub previously_failed_running_or_completed {
     # now check
     foreach my $key (keys %{$running_samples}) {
       if ($key eq $want_to_run_str) { $previously_run = 1; }
-      #print "RUNNING SAMPLE: $key WANT TO RUN: $want_to_run_str PREVIOUSLY RUN BOOL: $previously_run\n";
+      print "RUNNING SAMPLE: $key WANT TO RUN: $want_to_run_str PREVIOUSLY RUN BOOL: $previously_run\n";
     }
-    print "PREVIOUSLY RUN:$previously_run\n";
+    print "PREVIOUSLY RUN: $previously_run\n";
 
     return($previously_run);
 }
