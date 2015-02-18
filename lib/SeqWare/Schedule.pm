@@ -208,7 +208,8 @@ sub schedule_workflow {
          $seqware_output_lines_number,
          $test_mode,
          $workflow_template,
-         $generate_all_ini_files
+         $generate_all_ini_files,
+         $dcc_project_code
         ) = @_;
 
     my $cluster = (keys %{$cluster_information})[0];
@@ -260,7 +261,8 @@ sub schedule_workflow {
             $analysis_center_override,
             $seqware_output_lines_number,
             $test_mode,
-            $workflow_template
+            $workflow_template,
+            $dcc_project_code
             );
     }
 
@@ -385,6 +387,9 @@ sub schedule_donor {
 
     my @sample_ids = keys %{$donor_information};
 
+    my $dcc_project_code = $donor_information->{dcc_project_code};
+    my $submitted_donor_id;
+
     #print "DOES THIS CONTAIN VAR CALLING!?!?\n";
     #print Dumper($donor_information);
 
@@ -407,7 +412,6 @@ sub schedule_donor {
       # this is an ugly hack since I had to use this structure to pass around some extra info
       # need to skip any "donors" that are named below because they aren't really donors!
       next if ($donor_id eq "submitter_donor_id" || $donor_id eq "dcc_project_code");
-
         $specimens{$donor_id}++;
 
         next if defined $specific_sample and $specific_sample ne $donor_id;
@@ -654,7 +658,8 @@ sub schedule_donor {
                               $seqware_output_lines_number,
                               $test_mode,
                               $workflow_template,
-                              $generate_all_ini_files
+                              $generate_all_ini_files,
+                              $dcc_project_code
         )
         if $self->should_be_scheduled(
             $report_file,
@@ -701,7 +706,7 @@ sub should_be_scheduled {
 sub previously_failed_running_or_completed {
     my $self = shift;
     my ($donor, $running_samples) = @_;
-    #print Dumper($donor);
+ 
     my @want_to_run;
 
     foreach my $key (keys %{$donor->{normal}}) {
