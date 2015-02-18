@@ -1,0 +1,39 @@
+=head1 VERSION
+
+Version 0.0.1
+
+=head1 AUTHOR(S)
+
+Adam Wright
+
+=over
+
+=item --usage
+
+=item --help
+
+=item --man
+
+Print the usual program information
+
+=back
+
+=head1 DESCRIPTION
+
+A tool for creating the cluster.json input file for the workflow_decider
+
+=head1 NAME
+
+Cluster.json Generator
+
+=head1 REQUIRED
+
+=item --inventory-file[=][ ]<inventory_file_path>
+
+Path to inventory file. Likely found with the monitorying bag
+
+=head1 REQUIRED
+
+=item --workflow-name[=][ ]<workflow_name>
+
+Name of desired workflow as seen by SeqWare
