@@ -54,7 +54,7 @@ print $cluster_json;
 sub get_latest_workflow_version {
     my ($node_ip, $ssh_private_key, $machine_user, $workflow_name) = @_;
 
-    my $std_out = `ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i $ssh_private_key $machine_user\@$node_ip "sudo -u seqware -i seqware workflow list"`;
+    my $std_out = `ssh -o StrictHostKeyChecking=no -i $ssh_private_key $machine_user\@$node_ip "sudo -u seqware -i seqware workflow list"`;
 
     my ($workflow_accession, $workflow_version);
     my $found_workflow = 0; 
