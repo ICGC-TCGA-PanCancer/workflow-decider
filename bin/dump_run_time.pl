@@ -1,5 +1,6 @@
 use strict;
 use Statistics::Basic qw(:all);
+use List::Util qw< min max >;
 use JSON;
 die "USAGE $0 cluster.json" if (scalar(@ARGV) != 1);
 my $cluster_info = $ARGV[0];
@@ -77,6 +78,12 @@ sub strStats
    	    print "TOTAL DONORS:    \t".scalar(@{$wf_time{$type}})."\n";
 	    my $mdn = median(@{$wf_time{$type}});
 	    print "MEDIAN HOURS/DONOR:  \t$mdn\n";
+	    my $std = stddev(@{$wf_time{$type}});
+            print "STDDEV HOURS/DONOR:\t$std\n";
+	    my $min = min @{$wf_time{$type}};
+            my $max = max @{$wf_time{$type}};
+            print "MIN HOURS $min\n";
+	    print "MAX HOURS $max\n\n";
 	}
     }
 print "\n\nProcessing Time by Steps:\n";
@@ -84,6 +91,12 @@ print "\n\nProcessing Time by Steps:\n";
         print "$key\n";
         my $mds = median(@{$st_time{$key}});
 	print "MEDIAN HOURS/STEP:  \t $mds\n";
+        my $std = stddev(@{$st_time{$key}});
+        print "STDDEV HOURS/STEP:\t$std\n";
+        my $min = min @{$st_time{$key}};
+        my $max = max @{$st_time{$key}};
+        print "MIN HOURS $min\n";
+        print "MAX HOURS $max\n\n";
     }
 }
 
