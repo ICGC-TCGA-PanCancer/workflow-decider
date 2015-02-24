@@ -18,12 +18,12 @@ sub get {
     my $cfg = new Config::Simple();
 
     $cfg->read("$Bin/../$ARGV{'--decider-config'}");
-    
+
     my %decider_config = $cfg->vars();
 
     # Making sure cluster file exists
     ## Also allows you to have a ';' seperated list of configuration files
-    ### might need to be changed to ',' seperated because I beleive this is 
+    ### might need to be changed to ',' seperated because I beleive this is
     ### config simples automatic array separator.
     my @general_seqware_clusters = split ';', $decider_config{'scheduling.seqware-clusters'};
     $ARGV{'--seqware-clusters'} //= \@general_seqware_clusters;
@@ -31,13 +31,13 @@ sub get {
     foreach my $config_file (@{$ARGV{'--seqware-clusters'}}) {
         die "file does not exist: $config_file" unless (-f $config_file);
     }
-    
+
     # Required
     my %string_flags_to_ini_keys = (
            '--seqware-settings'            => 'general.seqware-settings',
            '--report'                       => 'general.report',
            '--working-dir'                  => 'general.working-dir',
-           '--bwa-workflow-version'         => 'general.bwa-workflow-version',  
+           '--bwa-workflow-version'         => 'general.bwa-workflow-version',
            '--lwp-download-timeout'         => 'general.lwp-download-timeout',
            '--local-status-cache'           => 'general.local-status-cache',
            '--failure-reports-dir'          => 'general.failure-reports-dir',
@@ -51,7 +51,7 @@ sub get {
            '--cores-addressable'            => 'workflow.cores-addressable',
            '--mem-host-mb-available'        => 'workflow.mem-host-mb-available',
            '--study-refname-override'       => 'workflow.study-refname-override',
-           '--analysis-center-override'     => 'workflow.analysis-center-override',  
+           '--analysis-center-override'     => 'workflow.analysis-center-override',
            '--seqware-output-lines-number'  => 'workflow.seqware-output-lines-number',
            '--workflow-template'            => 'workflow.workflow-template'
     );
@@ -80,7 +80,7 @@ sub get {
             '--test-mode'                  => 'workflow.testMode',
             '--generate-all-ini-files'     => 'general.generate-all-ini-files'
     );
-    
+
     my $ini_key;
     foreach my $flag (keys %boolean_flags_to_ini_keys) {
         $ini_key = $boolean_flags_to_ini_keys{$flag};
@@ -102,6 +102,26 @@ sub get {
     foreach my $flag (keys %optional_flags_to_ini_keys) {
         $ini_key = $optional_flags_to_ini_keys{$flag};
         $ARGV{$flag} //= $decider_config{$ini_key};
+    }
+
+    # new params not exposed via the command line, only through the config file
+    my %new_flags = (
+      '--upload-skip'               => 'workflow.upload-skip',
+      '--upload-test'               => 'workflow.upload-test',
+      '--vm-instance-type'          => 'workflow.vm-instance-type',
+      '--vm-instance-cores'         => 'workflow.vm-instance-cores',
+      '--vm-instance-mem-gb'        => 'workflow.vm-instance-mem-gb',
+      '--vm-location-code'          => 'workflow.vm-location-code',
+      '--cleanup-bams'              => 'workflow.cleanup-bams',
+      '--local-file-mode'           => 'workflow.local-file-mode',
+      '--local-xml-metadata-path'   => 'workflow.local-xml-metadata-path',
+      '--skip-validate'             => 'workflow.skip-validate',
+      '--local-bam-file-path-prefix' => 'workflow.local-bam-file-path-prefix'
+    );
+
+    foreach my $flag (keys %new_flags) {
+      $ini_key = $new_flags{$flag};
+      $ARGV{$flag} //= $decider_config{$ini_key};
     }
 
     return \%ARGV;
