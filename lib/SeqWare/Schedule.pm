@@ -66,6 +66,18 @@ sub schedule_samples {
     my $test_mode                   = $args{'test-mode'};
     my $workflow_template           = $args{'workflow-template'};
     my $generate_all_ini_files      = $args{'generate-all-ini-files'};
+    # new
+    my $uploadTest                  = $args{'upload-test'};
+    my $uploadSkip                  = $args{'upload-skip'};
+    my $vmInstanceType              = $args{'vm-instance-type'};
+    my $vmInstanceCores             = $args{'vm-instance-cores'};
+    my $vmInstanceMemGb             = $args{'vm-instance-mem-gb'};
+    my $vmLocationCode              = $args{'vm-location-code'};
+    my $cleanupBams                 = $args{'cleanup-bams'};
+    my $localFileMode               = $args{'local-file-mode'};
+    my $localXMLMetadataPath        = $args{'local-xml-metadata-path'};
+    my $skipValidate                = $args{'skip-validate'};
+    my $localBamFilePathPrefix      = $args{'local-bam-file-path-prefix'};
 
     say $report_file "SAMPLE SCHEDULING INFORMATION\n";
 
@@ -167,7 +179,21 @@ sub schedule_samples {
                                       $seqware_output_lines_number,
                                       $test_mode,
                                       $workflow_template,
-                                      $generate_all_ini_files);
+                                      $generate_all_ini_files,
+                                      # new
+                                      $uploadSkip,
+                                      $uploadTest,
+                                      $vmInstanceType,
+                                      $vmInstanceCores,
+                                      $vmInstanceMemGb,
+                                      $vmLocationCode,
+                                      $cleanupBams,
+                                      $localFileMode,
+                                      $localXMLMetadataPath,
+                                      $skipValidate,
+                                      $localBamFilePathPrefix,
+                                      $workflow_name
+                                      );
             }
             elsif (@whitelist > 0) {
                 # FIXME: can remove this since I added the check earlier in the loop
@@ -209,7 +235,20 @@ sub schedule_workflow {
          $test_mode,
          $workflow_template,
          $generate_all_ini_files,
-         $dcc_project_code
+         $dcc_project_code,
+         # new
+         $uploadSkip,
+         $uploadTest,
+         $vmInstanceType,
+         $vmInstanceCores,
+         $vmInstanceMemGb,
+         $vmLocationCode,
+         $cleanupBams,
+         $localFileMode,
+         $localXMLMetadataPath,
+         $skipValidate,
+         $localBamFilePathPrefix,
+         $workflow_name
         ) = @_;
 
     my $cluster = (keys %{$cluster_information})[0];
@@ -262,7 +301,20 @@ sub schedule_workflow {
             $seqware_output_lines_number,
             $test_mode,
             $workflow_template,
-            $dcc_project_code
+            $dcc_project_code,
+            # new
+            $uploadSkip,
+            $uploadTest,
+            $vmInstanceType,
+            $vmInstanceCores,
+            $vmInstanceMemGb,
+            $vmLocationCode,
+            $cleanupBams,
+            $localFileMode,
+            $localXMLMetadataPath,
+            $skipValidate,
+            $localBamFilePathPrefix,
+            $workflow_name
             );
     }
 
@@ -379,7 +431,20 @@ sub schedule_donor {
          $seqware_output_lines_number,
          $test_mode,
          $workflow_template,
-         $generate_all_ini_files
+         $generate_all_ini_files,
+         # new
+         $uploadSkip,
+         $uploadTest,
+         $vmInstanceType,
+         $vmInstanceCores,
+         $vmInstanceMemGb,
+         $vmLocationCode,
+         $cleanupBams,
+         $localFileMode,
+         $localXMLMetadataPath,
+         $skipValidate,
+         $localBamFilePathPrefix,
+         $workflow_name
         ) = @_;
 
     say $report_file "GOING TO SCHEDULE";
@@ -659,7 +724,20 @@ sub schedule_donor {
                               $test_mode,
                               $workflow_template,
                               $generate_all_ini_files,
-                              $dcc_project_code
+                              $dcc_project_code,
+                              # new
+                              $uploadSkip,
+                              $uploadTest,
+                              $vmInstanceType,
+                              $vmInstanceCores,
+                              $vmInstanceMemGb,
+                              $vmLocationCode,
+                              $cleanupBams,
+                              $localFileMode,
+                              $localXMLMetadataPath,
+                              $skipValidate,
+                              $localBamFilePathPrefix,
+                              $workflow_name
         )
         if $self->should_be_scheduled(
             $report_file,
@@ -706,7 +784,7 @@ sub should_be_scheduled {
 sub previously_failed_running_or_completed {
     my $self = shift;
     my ($donor, $running_samples) = @_;
- 
+
     my @want_to_run;
 
     foreach my $key (keys %{$donor->{normal}}) {
