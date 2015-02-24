@@ -182,6 +182,7 @@ sub schedule_samples {
                                       $generate_all_ini_files,
                                       # new
                                       $uploadSkip,
+                                      $uploadTest,
                                       $vmInstanceType,
                                       $vmInstanceCores,
                                       $vmInstanceMemGb,
@@ -237,6 +238,7 @@ sub schedule_workflow {
          $dcc_project_code,
          # new
          $uploadSkip,
+         $uploadTest,
          $vmInstanceType,
          $vmInstanceCores,
          $vmInstanceMemGb,
@@ -302,6 +304,7 @@ sub schedule_workflow {
             $dcc_project_code,
             # new
             $uploadSkip,
+            $uploadTest,
             $vmInstanceType,
             $vmInstanceCores,
             $vmInstanceMemGb,
@@ -431,6 +434,7 @@ sub schedule_donor {
          $generate_all_ini_files,
          # new
          $uploadSkip,
+         $uploadTest,
          $vmInstanceType,
          $vmInstanceCores,
          $vmInstanceMemGb,
@@ -723,6 +727,7 @@ sub schedule_donor {
                               $dcc_project_code,
                               # new
                               $uploadSkip,
+                              $uploadTest,
                               $vmInstanceType,
                               $vmInstanceCores,
                               $vmInstanceMemGb,

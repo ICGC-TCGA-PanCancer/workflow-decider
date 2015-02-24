@@ -76,6 +76,7 @@ sub create_workflow_ini {
         $dcc_project_code,
         # new
         $uploadSkip,
+        $uploadTest,
         $vmInstanceType,
         $vmInstanceCores,
         $vmInstanceMemGb,
