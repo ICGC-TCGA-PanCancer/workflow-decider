@@ -191,7 +191,6 @@ sub schedule_samples {
                                       $localXMLMetadataPath,
                                       $skipValidate,
                                       $localBamFilePathPrefix,
-                                      $workflow_version,
                                       $workflow_name
                                       );
             }
@@ -247,7 +246,6 @@ sub schedule_workflow {
          $localXMLMetadataPath,
          $skipValidate,
          $localBamFilePathPrefix,
-         $workflow_version,
          $workflow_name
         ) = @_;
 
@@ -313,7 +311,6 @@ sub schedule_workflow {
             $localXMLMetadataPath,
             $skipValidate,
             $localBamFilePathPrefix,
-            $workflow_version,
             $workflow_name
             );
     }
@@ -443,7 +440,6 @@ sub schedule_donor {
          $localXMLMetadataPath,
          $skipValidate,
          $localBamFilePathPrefix,
-         $workflow_version,
          $workflow_name
         ) = @_;
 
@@ -736,7 +732,6 @@ sub schedule_donor {
                               $localXMLMetadataPath,
                               $skipValidate,
                               $localBamFilePathPrefix,
-                              $workflow_version,
                               $workflow_name
         )
         if $self->should_be_scheduled(
