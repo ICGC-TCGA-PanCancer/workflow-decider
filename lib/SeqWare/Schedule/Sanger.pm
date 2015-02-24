@@ -85,7 +85,8 @@ sub create_workflow_ini {
         $localXMLMetadataPath,
         $skipValidate,
         $localBamFilePathPrefix,
-        $workflow_version
+        $workflow_version,
+        $workflow_name
         ) = @_;
 
     # Read in the default data
@@ -139,6 +140,7 @@ sub create_workflow_ini {
     $data->{'skipValidate'}                = $skipValidate;
     $data->{'localBamFilePathPrefix'}      = $localBamFilePathPrefix;
     $data->{'workflowVersion'}             = $workflow_version;
+    $data->{'workflowName'}                = $workflow_version;
 
     my $template = "$Bin/../$workflow_template";
 
