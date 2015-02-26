@@ -26,14 +26,24 @@ A tool for creating the cluster.json input file for the workflow_decider
 
 Cluster.json Generator
 
-=head1 REQUIRED
+=head1 REQUIRED 
+
+
 
 =item --inventory-file[=][ ]<inventory_file_path>
 
 Path to inventory file. Likely found with the monitorying bag
 
-=head1 REQUIRED
-
 =item --workflow-name[=][ ]<workflow_name>
 
 Name of desired workflow as seen by SeqWare
+
+=back
+
+=head1 OPTIONS
+
+=over
+
+=item --specific-workflow-version[=][ ]<workflow_version>
+
+If this is specified only the specified workflow version will apear in the cluster.json file being generated.

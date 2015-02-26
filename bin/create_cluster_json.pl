@@ -21,6 +21,8 @@ use JSON;
 my $cfg = new Config::Simple($ARGV{'--inventory-file'});
 my $worker_nodes = $cfg->param(-block=>'master');
 
+my $specific_workflow_version = $ARGV{'--specific-workflow-version'};
+
 my %nodes;
 foreach my $node_key (keys %{$worker_nodes}) {
     my @node_key_parts = split ' ', $node_key;
@@ -52,7 +54,7 @@ my $cluster_json = $json->pretty->encode(\%nodes);
 print $cluster_json;
 
 sub get_latest_workflow_version {
-    my ($node_ip, $ssh_private_key, $machine_user, $workflow_name) = @_;
+    my ($node_ip, $ssh_private_key, $machine_user, $workflow_name, $specified_workflow_version) = @_;
 
     my $std_out = `ssh -o StrictHostKeyChecking=no -o LogLevel=quiet -i $ssh_private_key $machine_user\@$node_ip "sudo -u seqware -i seqware workflow list"`;
 
@@ -63,7 +65,13 @@ sub get_latest_workflow_version {
     foreach my $line (@lines) {
         if ($found_workflow and $line =~ /^Version\s+\|\s(.*?)\s+/) {
             $found_workflow = 0;
-            if (!$workflow_version or $workflow_version lt $1) {
+            if (defined($specific_workflow_version)) {
+                if ($specific_workflow_version eq $1) {
+                    $workflow_version = $1;
+                    $latest_workflow = 1;
+                }
+            }
+            elsif (!$workflow_version or $workflow_version lt $1) {
                 $workflow_version = $1;    
                 $latest_workflow = 1;
             } 
