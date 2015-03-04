@@ -60,31 +60,36 @@ These are instructions given to UCSC but you can adapt them to your environment 
 
 On your launcher host (or an Ubuntu 12.04 box):
 
-git clone https://github.com/ICGC-TCGA-PanCancer/workflow-decider.git
-git checkout tags/1.1.2
+    git clone https://github.com/ICGC-TCGA-PanCancer/workflow-decider.git
+    git checkout tags/1.1.2
 
 Make sure you have ansible installed then do this to install dependencies:
 
-cd workflow-decider/install
-ANSIBLE_HOST_KEY_CHECKING=False  ansible-playbook -i inventory site.yml
+    cd workflow-decider/install
+    ANSIBLE_HOST_KEY_CHECKING=False  ansible-playbook -i inventory site.yml
 
-Update conf/sites/decider.ucsc.ini to use the correct IP address of the tabix server:
+Update `conf/sites/decider.ucsc.ini` to use the correct IP address of the tabix server:
 
-tabix-url=http://<IP_ADDRESS_HERE>/
+    tabix-url=http://<IP_ADDRESS_HERE>/
 
 Also, take a look at the other settings here, in particular cores-addressable and men-host-mb-available.  I’m using parameters for a 244G host but if you have more or less the cloud shepherds cc’d here can help guide you to the right settings.
 
-I also set cleanup=false, this way you can harvest the files from the <working_dir>/seqware-results/upload directories.  Right now the upload to your GNOS repository will fail since I have you pointed to gtrepo-osdc-tcga and that doesn’t accept uploads from outside locations.  I believe the right thing to do is to manually deposit the results into the Jamboree SFTP site until we have a better solution.
+I also set `cleanup=false`, this way you can harvest the files from the `<working_dir>/seqware-results/upload` directories.  Right now the upload to your GNOS repository will fail since I have you pointed to gtrepo-osdc-tcga and that doesn’t accept uploads from outside locations.  I believe the right thing to do is to manually deposit the results into the Jamboree SFTP site until we have a better solution.
 
 You’ll want to run the preparation of the ucsc ini files using the command below, of which you can pick a few to run as a test on one or more of your docker worker hosts.
 
-perl bin/sanger_workflow_decider.pl   --seqware-clusters instances.empty.json   --decider-config conf/sites/decider.ucsc.ini   --schedule-whitelist-donor ucsc.txt     --schedule-blacklist-donor empty.txt --skip-scheduling
+    perl bin/sanger_workflow_decider.pl   --seqware-clusters instances.empty.json   --decider-config conf/sites/decider.ucsc.ini   --schedule-whitelist-donor ucsc.txt     --schedule-blacklist-donor empty.txt --skip-scheduling  --generate-all-ini-files
 
 You will then see a directory of ini files created:
 
-ucsc/ini
+    ucsc/ini
 
 You can then just pick a few you want to test, log into your worker docker host, and then execute the workflow as you normally would following Denis’ previous directions for triggering a docker-based workflow.
+
+Similarly, here are the calls to generate BSC and Riken's INI files.
+
+    perl bin/sanger_workflow_decider.pl   --seqware-clusters instances.empty.json   --decider-config conf/sites/decider.bsc.ini   --schedule-whitelist-donor bsc.txt   --schedule-blacklist-donor empty.txt --skip-scheduling  --generate-all-ini-files
+    perl bin/sanger_workflow_decider.pl   --seqware-clusters instances.empty.json   --decider-config conf/sites/decider.riken.ini   --schedule-whitelist-donor riken.txt   --schedule-blacklist-donor empty.txt --skip-scheduling  --generate-all-ini-files
 
 #Flags
 
