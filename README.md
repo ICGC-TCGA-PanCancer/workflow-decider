@@ -91,6 +91,8 @@ Similarly, here are the calls to generate BSC and Riken's INI files.
     perl bin/sanger_workflow_decider.pl   --seqware-clusters instances.empty.json   --decider-config conf/sites/decider.bsc.ini   --schedule-whitelist-donor bsc.txt   --schedule-blacklist-donor empty.txt --skip-scheduling  --generate-all-ini-files
     perl bin/sanger_workflow_decider.pl   --seqware-clusters instances.empty.json   --decider-config conf/sites/decider.riken.ini   --schedule-whitelist-donor riken.txt   --schedule-blacklist-donor empty.txt --skip-scheduling  --generate-all-ini-files
 
+*NOTE:* as you get updated whitelists cat them together and place the file in the whitelists directory. Then reference them by name.  For exampel `whitelists/riken.txt` would be referred to as `riken.txt` in the above command.  You are responsible for updating your whitelists as your allocation increases, what's checked into the decider codebase here is just an initial example for each site.
+
 #Flags
 
 All settings can be maind in the devider.ini file. Several of the parameters that are in the ini files can be overwritten with command line flags. The following descibes these flags:
