@@ -56,12 +56,12 @@ Look at the logs to determine if the decider is doing things as you would expect
 
 ## Generating INI Files in Bulk
 
-These are instructions given to UCSC but you can adapt them to your environment in order to bulk create workflow ini files without having to schedule workflows directly.
+*NOTE:* These are instructions given to UCSC but you can adapt them to your environment in order to bulk create workflow ini files without having to schedule workflows directly.  Specifically, look at modifying `conf/sites/decider.*.ini` and `conf/ini/sites/workflow-1.0.5.*.ini` for your site.  I created templates for BSC, UCSC, and Tokyo already, modify these as needed.
 
 On your launcher host (or an Ubuntu 12.04 box):
 
     git clone https://github.com/ICGC-TCGA-PanCancer/workflow-decider.git
-    git checkout tags/1.1.2
+    git checkout develop
 
 Make sure you have ansible installed then do this to install dependencies:
 
@@ -74,7 +74,7 @@ Update `conf/sites/decider.ucsc.ini` to use the correct IP address of the tabix 
 
 Also, take a look at the other settings here, in particular cores-addressable and men-host-mb-available.  I’m using parameters for a 244G host but if you have more or less the cloud shepherds cc’d here can help guide you to the right settings.
 
-I also set `cleanup=false`, this way you can harvest the files from the `<working_dir>/seqware-results/upload` directories.  Right now the upload to your GNOS repository will fail since I have you pointed to gtrepo-osdc-tcga and that doesn’t accept uploads from outside locations.  I believe the right thing to do is to manually deposit the results into the Jamboree SFTP site until we have a better solution.
+I also set `cleanup=false`, this way you can harvest the files from the `<working_dir>/seqware-results/upload` directories. In 1.0.5 you'll also find a new tarball archive in `<working_dir>/seqware-results/upload-archive`.  If uploading, check the upload GNOS URL and pem key.
 
 You’ll want to run the preparation of the ucsc ini files using the command below, of which you can pick a few to run as a test on one or more of your docker worker hosts.
 
