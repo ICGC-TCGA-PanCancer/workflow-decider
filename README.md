@@ -1,4 +1,4 @@
-# BWA Decider
+# Workflow Decider
 
 ## About
 
@@ -7,14 +7,15 @@ This is the decider for the PanCancer Variant Calling workfow.
 
 ## Installing dependencies
 
-A shell script named 'install' will install all of the dependencies.
+A shell script named 'install' will install all of the dependencies for Ubuntu 12.04.
 
-           sudo bash install
+           cd install
+           ANSIBLE_HOST_KEY_CHECKING=False  ansible-playbook -i inventory site.yml
 
 ## Configuration
 
-./conf/decider.ini Is an example decider config file that provides the decider with all the parameters that it needs. 
-./conf/ini contains seqware ini templates fore submitting workflows to SeqWare. This template file is set in thee decider ini with the parameterfile is pointed to in the decider.ini file (section: workflow parameter: workflow-template). If need be this is where you will adjust the memory settings for the workflow. 
+./conf/decider.ini Is an example decider config file that provides the decider with all the parameters that it needs.
+./conf/ini contains seqware ini templates fore submitting workflows to SeqWare. This template file is set in thee decider ini with the parameterfile is pointed to in the decider.ini file (section: workflow parameter: workflow-template). If need be this is where you will adjust the memory settings for the workflow.
 
 ## White/Black lists
 Place donor and sample-level white or black lists in the appropriate directory.
@@ -22,7 +23,7 @@ For example a white list of donor IDs is placed in the whitelist directory, then
 specified as follows:
 
            whitelist-donor=donors_I_want.txt
-           
+
            Other options:
            blacklist-donor=
            whitelist-sample=
@@ -34,7 +35,7 @@ An script has been created for creating these files from a github repo (https://
 
            perl bin/update-whitelist.pl --pawgc-repo-dir /home/ubuntu/architecture2/ --whitelist-target-path=/home/ubuntu/architecture2/workflow-decider/whitelist/ebi-whitelist.txt --cloud-env=ebi --gnos-repo=ebi --blacklist-target-path=/home/ubuntu/architecture2/workflow-decider/blacklist/blacklist.txt
 
-The cloud environment is the same name as the folder in the repo that you are getting your whitelist from and the gnos-repo is exactly the sample as the name at the end of the file in the repo (eg. from_ebi.txt). 
+The cloud environment is the same name as the folder in the repo that you are getting your whitelist from and the gnos-repo is exactly the sample as the name at the end of the file in the repo (eg. from\_ebi.txt).
 
 Place the names of the two files into your decider.ini.
 
@@ -45,13 +46,52 @@ Place the names of the two files into your decider.ini.
 
            perl bin/sanger_workflow_decider.pl --decider-config=conf/<decider-file>
 
-Before you run the decider make sure to update the whitelist files from the repository.           
+Before you run the decider make sure to update the whitelist files from the repository.
 
 ## Testing
 
 For testing purposes you can set the following flag to true: skip-scheduling=true
 
 Look at the logs to determine if the decider is doing things as you would expect.
+
+## Generating INI Files in Bulk
+
+*NOTE:* These are instructions given to UCSC but you can adapt them to your environment in order to bulk create workflow ini files without having to schedule workflows directly.  Specifically, look at modifying `conf/sites/decider.*.ini` and `conf/ini/sites/workflow-1.0.5.*.ini` for your site.  I created templates for BSC, UCSC, and Tokyo already, modify these as needed.
+
+On your launcher host (or an Ubuntu 12.04 box):
+
+    git clone https://github.com/ICGC-TCGA-PanCancer/workflow-decider.git
+    git checkout develop
+
+Make sure you have ansible installed then do this to install dependencies:
+
+    cd workflow-decider/install
+    ANSIBLE_HOST_KEY_CHECKING=False  ansible-playbook -i inventory site.yml
+
+Update `conf/sites/decider.ucsc.ini` to use the correct IP address of the tabix server:
+
+    tabix-url=http://<IP_ADDRESS_HERE>/
+
+Also, take a look at the other settings here, in particular cores-addressable and men-host-mb-available.  I’m using parameters for a 244G host but if you have more or less the cloud shepherds cc’d here can help guide you to the right settings.
+
+I also set `cleanup=false`, this way you can harvest the files from the `<working_dir>/seqware-results/upload` directories. In 1.0.5 you'll also find a new tarball archive in `<working_dir>/seqware-results/upload-archive`.  If uploading, check the upload GNOS URL and pem key.
+
+You’ll want to run the preparation of the ucsc ini files using the command below, of which you can pick a few to run as a test on one or more of your docker worker hosts.
+
+    perl bin/sanger_workflow_decider.pl   --seqware-clusters instances.empty.json   --decider-config conf/sites/decider.ucsc.ini   --schedule-whitelist-donor ucsc.txt     --schedule-blacklist-donor empty.txt --skip-scheduling  --generate-all-ini-files
+
+You will then see a directory of ini files created:
+
+    ucsc/ini
+
+You can then just pick a few you want to test, log into your worker docker host, and then execute the workflow as you normally would following Denis’ previous directions for triggering a docker-based workflow.
+
+Similarly, here are the calls to generate BSC and Riken's INI files.
+
+    perl bin/sanger_workflow_decider.pl   --seqware-clusters instances.empty.json   --decider-config conf/sites/decider.bsc.ini   --schedule-whitelist-donor bsc.txt   --schedule-blacklist-donor empty.txt --skip-scheduling  --generate-all-ini-files
+    perl bin/sanger_workflow_decider.pl   --seqware-clusters instances.empty.json   --decider-config conf/sites/decider.riken.ini   --schedule-whitelist-donor riken.txt   --schedule-blacklist-donor empty.txt --skip-scheduling  --generate-all-ini-files
+
+*NOTE:* as you get updated whitelists cat them together and place the file in the whitelists directory. Then reference them by name.  For exampel `whitelists/riken.txt` would be referred to as `riken.txt` in the above command.  You are responsible for updating your whitelists as your allocation increases, what's checked into the decider codebase here is just an initial example for each site.
 
 #Flags
 
@@ -216,4 +256,3 @@ OPTIONS
         if --skip-gtdownload is set, this is the input bam file prefix
 
 </pre>
-

@@ -72,7 +72,22 @@ sub create_workflow_ini {
         $analysis_center_override,
         $seqware_output_lines_number,
         $test_mode,
-        $workflow_template) = @_;
+        $workflow_template,
+        $dcc_project_code,
+        # new
+        $uploadSkip,
+        $uploadTest,
+        $vmInstanceType,
+        $vmInstanceCores,
+        $vmInstanceMemGb,
+        $vmLocationCode,
+        $cleanupBams,
+        $localFileMode,
+        $localXMLMetadataPath,
+        $skipValidate,
+        $localBamFilePathPrefix,
+        $workflow_name
+        ) = @_;
 
     # Read in the default data
     my @normal_alignments = keys %{$donor->{normal}};
@@ -104,14 +119,28 @@ sub create_workflow_ini {
     $data->{'uploadPemFile'}               = $upload_pem_file;
     $data->{'gnosServer'}                  = $gnos_download_url;
     $data->{'uploadServer'}                = $gnos_upload_url;
-    $data->{'donor_id'}                    = $donor->{donor_id};
+    $data->{'donorId'}                     = $donor->{donor_id};
     $data->{'memHostMbAvailable'}          = $mem_host_mb_available;
     $data->{'cleanup'}                     = ($cleanup)? 'true':'false';
     $data->{'studyRefnameOverride'}        = $study_refname_override;
     $data->{'analysisCenterOverride'}      = $analysis_center_override;
     $data->{'seqwareOutputLinesNumber'}    = $seqware_output_lines_number;
     $data->{'testMode'}                    = ($test_mode)? 'true':'false';
-
+    $data->{'dccPojectCode'}               = $dcc_project_code;
+    # new
+    $data->{'uploadTest'}                  = $uploadTest;
+    $data->{'uploadSkip'}                  = $uploadSkip;
+    $data->{'vmInstanceType'}              = $vmInstanceType;
+    $data->{'vmInstanceCores'}             = $vmInstanceCores;
+    $data->{'vmInstanceMemGb'}             = $vmInstanceMemGb;
+    $data->{'vmLocationCode'}              = $vmLocationCode;
+    $data->{'cleanupBams'}                 = $cleanupBams;
+    $data->{'localFileMode'}               = $localFileMode;
+    $data->{'localXMLMetadataPath'}        = $localXMLMetadataPath;
+    $data->{'skipValidate'}                = $skipValidate;
+    $data->{'localBamFilePathPrefix'}      = $localBamFilePathPrefix;
+    $data->{'workflowVersion'}             = $workflow_version;
+    $data->{'workflowName'}                = $workflow_name;
 
     my $template = "$Bin/../$workflow_template";
 

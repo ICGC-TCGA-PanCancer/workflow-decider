@@ -9,6 +9,8 @@ use List::Util qw< min max >;
 
 die "USAGE $0 <report_dir>" if (scalar(@ARGV) != 1);
 
+my $seen = {};
+
 my ($report_dir) = @ARGV;
 
 foreach my $type ("completed", "failed") {
@@ -33,6 +35,12 @@ foreach my $type ("completed", "failed") {
 
   foreach my $summary (glob("$report_dir/$type/*/summary.tsv")) {
     #print "$summary\n";
+    my $ini = $summary;
+    $ini =~ s/summary.tsv/workflow.ini/;
+    my $ini_txt = `cat $ini`;
+    $ini_txt =~ /controlBam=(\S+)/;
+    next if (defined($seen->{$1}));
+    $seen->{$1} = 1;
     my $txt = `cat $summary`;
     #print "$txt\n";
     #print "\n\n";

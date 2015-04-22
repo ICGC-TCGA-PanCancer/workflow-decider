@@ -66,6 +66,18 @@ sub schedule_samples {
     my $test_mode                   = $args{'test-mode'};
     my $workflow_template           = $args{'workflow-template'};
     my $generate_all_ini_files      = $args{'generate-all-ini-files'};
+    # new
+    my $uploadTest                  = $args{'upload-test'};
+    my $uploadSkip                  = $args{'upload-skip'};
+    my $vmInstanceType              = $args{'vm-instance-type'};
+    my $vmInstanceCores             = $args{'vm-instance-cores'};
+    my $vmInstanceMemGb             = $args{'vm-instance-mem-gb'};
+    my $vmLocationCode              = $args{'vm-location-code'};
+    my $cleanupBams                 = $args{'cleanup-bams'};
+    my $localFileMode               = $args{'local-file-mode'};
+    my $localXMLMetadataPath        = $args{'local-xml-metadata-path'};
+    my $skipValidate                = $args{'skip-validate'};
+    my $localBamFilePathPrefix      = $args{'local-bam-file-path-prefix'};
 
     say $report_file "SAMPLE SCHEDULING INFORMATION\n";
 
@@ -101,7 +113,7 @@ sub schedule_samples {
                     my @need_version = split '.', $workflow_version;
                     # FIXME: not sure this is going to work when we have > workflow versions... seems like it will cause everything to re-run when 1.1.0 comes out! Not sure we want that...
                     my $skip_donor = $have_version[0] >= $need_version[0] && $have_version[1] >= $need_version[1];
-                    if ($skip_donor) {
+                    if ($skip_donor && !$generate_all_ini_files) {
                         say $report_file "Skipping donor $donor_id because $workflow_name has already been run";
                         next DONOR;
                         }
@@ -167,7 +179,21 @@ sub schedule_samples {
                                       $seqware_output_lines_number,
                                       $test_mode,
                                       $workflow_template,
-                                      $generate_all_ini_files);
+                                      $generate_all_ini_files,
+                                      # new
+                                      $uploadSkip,
+                                      $uploadTest,
+                                      $vmInstanceType,
+                                      $vmInstanceCores,
+                                      $vmInstanceMemGb,
+                                      $vmLocationCode,
+                                      $cleanupBams,
+                                      $localFileMode,
+                                      $localXMLMetadataPath,
+                                      $skipValidate,
+                                      $localBamFilePathPrefix,
+                                      $workflow_name
+                                      );
             }
             elsif (@whitelist > 0) {
                 # FIXME: can remove this since I added the check earlier in the loop
@@ -208,7 +234,21 @@ sub schedule_workflow {
          $seqware_output_lines_number,
          $test_mode,
          $workflow_template,
-         $generate_all_ini_files
+         $generate_all_ini_files,
+         $dcc_project_code,
+         # new
+         $uploadSkip,
+         $uploadTest,
+         $vmInstanceType,
+         $vmInstanceCores,
+         $vmInstanceMemGb,
+         $vmLocationCode,
+         $cleanupBams,
+         $localFileMode,
+         $localXMLMetadataPath,
+         $skipValidate,
+         $localBamFilePathPrefix,
+         $workflow_name
         ) = @_;
 
     my $cluster = (keys %{$cluster_information})[0];
@@ -260,7 +300,21 @@ sub schedule_workflow {
             $analysis_center_override,
             $seqware_output_lines_number,
             $test_mode,
-            $workflow_template
+            $workflow_template,
+            $dcc_project_code,
+            # new
+            $uploadSkip,
+            $uploadTest,
+            $vmInstanceType,
+            $vmInstanceCores,
+            $vmInstanceMemGb,
+            $vmLocationCode,
+            $cleanupBams,
+            $localFileMode,
+            $localXMLMetadataPath,
+            $skipValidate,
+            $localBamFilePathPrefix,
+            $workflow_name
             );
     }
 
@@ -377,13 +431,29 @@ sub schedule_donor {
          $seqware_output_lines_number,
          $test_mode,
          $workflow_template,
-         $generate_all_ini_files
+         $generate_all_ini_files,
+         # new
+         $uploadSkip,
+         $uploadTest,
+         $vmInstanceType,
+         $vmInstanceCores,
+         $vmInstanceMemGb,
+         $vmLocationCode,
+         $cleanupBams,
+         $localFileMode,
+         $localXMLMetadataPath,
+         $skipValidate,
+         $localBamFilePathPrefix,
+         $workflow_name
         ) = @_;
 
     say $report_file "GOING TO SCHEDULE";
     say $report_file "\nDONOR/PARTICIPANT: $donor_id\n";
 
     my @sample_ids = keys %{$donor_information};
+
+    my $dcc_project_code = $donor_information->{dcc_project_code};
+    my $submitted_donor_id;
 
     #print "DOES THIS CONTAIN VAR CALLING!?!?\n";
     #print Dumper($donor_information);
@@ -407,7 +477,6 @@ sub schedule_donor {
       # this is an ugly hack since I had to use this structure to pass around some extra info
       # need to skip any "donors" that are named below because they aren't really donors!
       next if ($donor_id eq "submitter_donor_id" || $donor_id eq "dcc_project_code");
-
         $specimens{$donor_id}++;
 
         next if defined $specific_sample and $specific_sample ne $donor_id;
@@ -654,13 +723,27 @@ sub schedule_donor {
                               $seqware_output_lines_number,
                               $test_mode,
                               $workflow_template,
-                              $generate_all_ini_files
+                              $generate_all_ini_files,
+                              $dcc_project_code,
+                              # new
+                              $uploadSkip,
+                              $uploadTest,
+                              $vmInstanceType,
+                              $vmInstanceCores,
+                              $vmInstanceMemGb,
+                              $vmLocationCode,
+                              $cleanupBams,
+                              $localFileMode,
+                              $localXMLMetadataPath,
+                              $skipValidate,
+                              $localBamFilePathPrefix,
+                              $workflow_name
         )
         if $self->should_be_scheduled(
             $report_file,
             $skip_scheduling,
             $running_samples,
-            $donor, $center_name
+            $donor, $center_name, $generate_all_ini_files
         );
 }
 
@@ -670,9 +753,17 @@ sub should_be_scheduled {
     my $skip_scheduling = shift;
     my $running_samples = shift;
     my $donor = shift;
+    my $center_name = shift;
+    my $generate_all_ini_files = shift;
+
+    say $report_file "GENERATE ALL INI?: $generate_all_ini_files\n";
+
+    # just return true if we want the ini
+    return(1) if ($generate_all_ini_files);
 
     # running_samples here actually contains running, failed, and completed
     my $prev_failed_running_complete = $self->previously_failed_running_or_completed($donor, $running_samples);
+
     if ($prev_failed_running_complete) {
     say $report_file "\t\tCONCLUSION: NOT SCHEDULING FOR VCF, PREVIOUSLY FAILED, RUNNING, OR COMPLETED";
       #print "\t\t\tCONCLUSION: NOT SCHEDULING FOR VCF, PREVIOUSLY FAILED, RUNNING, OR COMPLETED\n";
@@ -693,7 +784,7 @@ sub should_be_scheduled {
 sub previously_failed_running_or_completed {
     my $self = shift;
     my ($donor, $running_samples) = @_;
-    #print Dumper($donor);
+
     my @want_to_run;
 
     foreach my $key (keys %{$donor->{normal}}) {
@@ -712,9 +803,9 @@ sub previously_failed_running_or_completed {
     # now check
     foreach my $key (keys %{$running_samples}) {
       if ($key eq $want_to_run_str) { $previously_run = 1; }
-      #print "RUNNING SAMPLE: $key WANT TO RUN: $want_to_run_str PREVIOUSLY RUN BOOL: $previously_run\n";
+      print "RUNNING SAMPLE: $key WANT TO RUN: $want_to_run_str PREVIOUSLY RUN BOOL: $previously_run\n";
     }
-    print "PREVIOUSLY RUN:$previously_run\n";
+    print "PREVIOUSLY RUN: $previously_run\n";
 
     return($previously_run);
 }
